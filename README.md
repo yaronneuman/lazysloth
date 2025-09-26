@@ -1,0 +1,149 @@
+# FastParrot 🦜
+
+A CLI-first application that helps developers and terminal users improve their productivity by sharing shortcuts, aliases, and scripts with each other.
+
+## Features
+
+- **Multi-shell support**: Works with Bash, Zsh, and Fish shells
+- **Alias collection**: Automatically discovers existing aliases from your shell configuration
+- **Smart suggestions**: Learn when to use aliases through intelligent command monitoring
+- **Muscle memory training**: Get reminded about available shortcuts to build better habits
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/yaronneuman/fastparrot.git
+cd fastparrot
+pip install -e .
+```
+
+### Install Shell Integration
+
+After installing FastParrot, you need to integrate it with your shell:
+
+```bash
+# Auto-detect shell and install
+fastparrot install
+
+# Or specify a shell explicitly
+fastparrot install --shell bash
+fastparrot install --shell zsh
+fastparrot install --shell fish
+```
+
+Then restart your shell or source your configuration:
+
+```bash
+# For bash
+source ~/.bashrc
+
+# For zsh
+source ~/.zshrc
+
+# For fish
+source ~/.config/fish/config.fish
+```
+
+## Usage
+
+### Collect Existing Aliases
+
+Discover aliases already defined in your shell configurations:
+
+```bash
+fastparrot collect
+```
+
+### Monitor Command Usage
+
+Enable command monitoring (enabled by default):
+
+```bash
+fastparrot monitor --enable
+```
+
+Disable monitoring:
+
+```bash
+fastparrot monitor --disable
+```
+
+### Check Status
+
+View FastParrot status and configuration:
+
+```bash
+fastparrot status
+```
+
+## How It Works
+
+1. **Installation**: FastParrot integrates with your shell by adding a command hook that runs before each command execution.
+
+2. **Alias Collection**: It scans your shell configuration files (`.bashrc`, `.zshrc`, etc.) to discover existing aliases.
+
+3. **Command Monitoring**: Every command you run is monitored. When you use a command that has an available alias, FastParrot suggests using the alias instead.
+
+4. **Learning**: After seeing the same command multiple times (default: 3 times), FastParrot will suggest creating an alias or remind you about an existing one.
+
+## Configuration
+
+FastParrot stores its configuration in `~/.config/fastparrot/`:
+
+- `config.yaml` - Main configuration
+- `aliases.yaml` - Discovered aliases
+- `stats.yaml` - Command usage statistics
+
+### Configuration Options
+
+```yaml
+monitoring:
+  enabled: true
+  suggestion_threshold: 3  # Show suggestion after N uses
+
+aliases:
+  auto_learn: true
+  share_enabled: false
+
+ui:
+  colors: true
+  notifications: true
+```
+
+## Examples
+
+After installation and running a few commands:
+
+```bash
+$ git status
+💡 You can use 'gs' instead of 'git status'
+
+$ docker ps
+💡 Consider creating an alias: alias dps='docker ps'
+
+$ ls -la
+💡 You can use 'll' instead of 'ls -la'
+```
+
+## Architecture
+
+FastParrot is designed with a modular architecture:
+
+- **Core**: Configuration management and installation logic
+- **Collectors**: Extract aliases from various shell configurations
+- **Monitors**: Track command usage and provide suggestions
+- **Utils**: Shared utilities and helpers
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0+). See the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Created by Yaron Neuman

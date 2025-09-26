@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastparrot"
+version = "1.0.0"
+description = "CLI-first application for sharing and learning terminal shortcuts and aliases"
+authors = [{name = "Yaron Neuman"}]
+license = {text = "AGPL-3.0-or-later"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "click>=8.0.0",
+    "colorama>=0.4.4",
+    "watchdog>=2.1.0",
+    "psutil>=5.8.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+fastparrot = "fastparrot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fastparrot*"]
+
+[tool.setuptools.package-data]
+fastparrot = ["shells/*.sh", "shells/*.fish", "shells/*.zsh"]
