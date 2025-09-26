@@ -1,0 +1,275 @@
+"""
+Unit tests for the AliasCollector class.
+"""
+
+import pytest
+from pathlib import Path
+from unittest.mock import patch, MagicMock
+
+from fastparrot.collectors.alias_collector import AliasCollector
+
+
+@pytest.mark.unit
+class TestAliasCollector:
+    """Test the AliasCollector class functionality."""
+
+    def test_init(self, isolated_config):
+        """Test AliasCollector initialization."""
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+            collector = AliasCollector()
+            assert collector.config == isolated_config
+
+    def test_parse_bash_zsh_aliases(self, mock_home_dir, sample_shell_configs):
+        """Test parsing aliases from bash/zsh configuration files."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create a bash config file
+            bashrc = mock_home_dir / '.bashrc'
+            bashrc.write_text(sample_shell_configs['bashrc'])
+
+            aliases = collector._parse_bash_zsh_aliases(bashrc, 'bash')
+
+            assert 'll' in aliases
+            assert aliases['ll']['command'] == 'ls -la'
+            assert aliases['ll']['shell'] == 'bash'
+            assert aliases['ll']['type'] == 'alias'
+
+            assert 'gs' in aliases
+            assert aliases['gs']['command'] == 'git status'
+
+    def test_parse_zsh_aliases(self, mock_home_dir, sample_shell_configs):
+        """Test parsing aliases from zsh configuration file."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create a zsh config file
+            zshrc = mock_home_dir / '.zshrc'
+            zshrc.write_text(sample_shell_configs['zshrc'])
+
+            aliases = collector._parse_bash_zsh_aliases(zshrc, 'zsh')
+
+            assert 'gs' in aliases
+            assert aliases['gs']['command'] == 'git status'
+            assert aliases['gs']['shell'] == 'zsh'
+
+            assert 'dps' in aliases
+            assert aliases['dps']['command'] == 'docker ps'
+
+    def test_parse_fish_config(self, mock_home_dir, sample_shell_configs):
+        """Test parsing aliases from fish configuration file."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create fish config file
+            fish_config = mock_home_dir / '.config' / 'fish' / 'config.fish'
+            fish_config.parent.mkdir(parents=True, exist_ok=True)
+            fish_config.write_text(sample_shell_configs['fish_config'])
+
+            aliases = collector._parse_fish_config(fish_config)
+
+            assert 'll' in aliases
+            assert aliases['ll']['command'] == 'ls -la'
+            assert aliases['ll']['shell'] == 'fish'
+
+            assert 'gs' in aliases
+            assert aliases['gs']['command'] == 'git status'
+
+    def test_parse_fish_function(self, mock_home_dir, sample_shell_configs):
+        """Test parsing fish function files."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create fish function file
+            func_file = mock_home_dir / '.config' / 'fish' / 'functions' / 'll.fish'
+            func_file.parent.mkdir(parents=True, exist_ok=True)
+            func_file.write_text(sample_shell_configs['fish_function_ll'])
+
+            aliases = collector._parse_fish_function(func_file)
+
+            assert 'll' in aliases
+            assert aliases['ll']['command'] == 'ls -la $argv'
+            assert aliases['ll']['shell'] == 'fish'
+            assert aliases['ll']['type'] == 'function'
+
+    def test_collect_from_bash(self, mock_home_dir, sample_shell_configs):
+        """Test collecting aliases from bash configuration."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create bash config
+            bashrc = mock_home_dir / '.bashrc'
+            bashrc.write_text(sample_shell_configs['bashrc'])
+
+            aliases = collector.collect_from_shell('bash')
+
+            assert 'll' in aliases
+            assert 'gs' in aliases
+            assert aliases['ll']['command'] == 'ls -la'
+
+    def test_collect_from_fish(self, mock_home_dir, sample_shell_configs):
+        """Test collecting aliases from fish configuration."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create fish config and functions
+            fish_config = mock_home_dir / '.config' / 'fish' / 'config.fish'
+            fish_config.parent.mkdir(parents=True, exist_ok=True)
+            fish_config.write_text(sample_shell_configs['fish_config'])
+
+            functions_dir = mock_home_dir / '.config' / 'fish' / 'functions'
+            functions_dir.mkdir(exist_ok=True)
+
+            (functions_dir / 'll.fish').write_text(sample_shell_configs['fish_function_ll'])
+            (functions_dir / 'gs.fish').write_text(sample_shell_configs['fish_function_gs'])
+
+            aliases = collector.collect_from_shell('fish')
+
+            # Should get aliases from both config and functions
+            assert len(aliases) >= 2
+            assert 'll' in aliases
+
+    def test_find_alias_for_command_exact_match(self, isolated_config, sample_aliases):
+        """Test finding alias for exact command match."""
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+            isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
+
+            collector = AliasCollector()
+
+            # Test exact match
+            result = collector.find_alias_for_command('git status')
+            assert result is not None
+            alias_name, alias_data = result
+            assert alias_name == 'gs'  # Should prefer first match
+            assert alias_data['command'] == 'git status'
+
+    def test_find_alias_for_command_with_arguments(self, isolated_config, sample_aliases):
+        """Test finding alias for command with additional arguments."""
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+            isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
+
+            collector = AliasCollector()
+
+            # Test command with arguments
+            result = collector.find_alias_for_command('git status --short')
+            assert result is not None
+            alias_name, alias_data = result
+            assert alias_name in ['gs', 'gst']  # Could match either
+            assert alias_data['command'] == 'git status'
+
+    def test_find_alias_for_command_no_match(self, isolated_config, sample_aliases):
+        """Test finding alias for command with no matches."""
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+            isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
+
+            collector = AliasCollector()
+
+            # Test no match
+            result = collector.find_alias_for_command('some unknown command')
+            assert result is None
+
+    def test_find_alias_for_command_prefers_specific(self, isolated_config):
+        """Test that more specific aliases are preferred over general ones."""
+        aliases_with_specificity = {
+            'g': {
+                'command': 'git',
+                'shell': 'zsh',
+                'source_file': '/home/user/.zshrc',
+                'type': 'alias'
+            },
+            'gs': {
+                'command': 'git status',
+                'shell': 'zsh',
+                'source_file': '/home/user/.zshrc',
+                'type': 'alias'
+            }
+        }
+
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+            isolated_config.get_aliases_data = MagicMock(return_value=aliases_with_specificity)
+
+            collector = AliasCollector()
+
+            # Should prefer more specific alias
+            result = collector.find_alias_for_command('git status')
+            assert result is not None
+            alias_name, alias_data = result
+            assert alias_name == 'gs'  # More specific than 'g'
+
+    def test_collect_all_saves_data(self, isolated_config, mock_home_dir, sample_shell_configs):
+        """Test that collect_all saves data to config."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+                mock_config.return_value = isolated_config
+                isolated_config.save_aliases_data = MagicMock()
+
+                collector = AliasCollector()
+                collector.home = mock_home_dir
+
+                # Create some config files
+                bashrc = mock_home_dir / '.bashrc'
+                bashrc.write_text(sample_shell_configs['bashrc'])
+
+                # Run collect_all
+                result = collector.collect_all()
+
+                # Verify save was called
+                isolated_config.save_aliases_data.assert_called_once()
+
+                # Verify result contains collected aliases
+                assert isinstance(result, dict)
+
+    def test_get_config_files(self, mock_home_dir):
+        """Test getting configuration files for different shells."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Test bash config files
+            bash_files = collector._get_config_files('bash')
+            expected_bash = [
+                mock_home_dir / '.bashrc',
+                mock_home_dir / '.bash_profile',
+                mock_home_dir / '.bash_aliases',
+                mock_home_dir / '.profile'
+            ]
+            assert bash_files == expected_bash
+
+            # Test zsh config files
+            zsh_files = collector._get_config_files('zsh')
+            expected_zsh = [
+                mock_home_dir / '.zshrc',
+                mock_home_dir / '.zsh_profile',
+                mock_home_dir / '.zshenv',
+                mock_home_dir / '.profile'
+            ]
+            assert zsh_files == expected_zsh
+
+            # Test unknown shell
+            unknown_files = collector._get_config_files('unknown')
+            assert unknown_files == []
+
+    def test_parse_aliases_ignores_unreadable_files(self, mock_home_dir):
+        """Test that parsing gracefully handles unreadable files."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            collector.home = mock_home_dir
+
+            # Create a file that will cause UnicodeDecodeError
+            bad_file = mock_home_dir / '.bashrc'
+            bad_file.write_bytes(b'\xff\xfe\x00\x00')  # Invalid UTF-8
+
+            # Should not raise exception
+            aliases = collector._parse_bash_zsh_aliases(bad_file, 'bash')
+            assert aliases == {}

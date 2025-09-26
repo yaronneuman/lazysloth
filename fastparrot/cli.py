@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from email.policy import default
+from os import close
 from pickle import FALSE
 
 import click
@@ -70,35 +71,62 @@ def collect():
         sys.exit(1)
 
 @main.command()
-@click.option('--enable/--disable', default=True, help='Enable or disable monitoring')
+@click.option('--enabled', type=bool, help='Enable or disable monitoring (true/false)')
+@click.option('--action', type=click.Choice(['none', 'notice', 'block']), help='Set monitoring action: none (no action), notice (show suggestions), block (prevent command execution)')
 @click.option('--notice-threshold', type=int, help='Threshold for showing notices')
-@click.option('--blocking-threshold', type=int, help='Threshold for blocking commands')
-@click.option('--enable-blocking/--disable-blocking', default=True, help='Enable/disable command blocking')
-def monitor(enable, notice_threshold, blocking_threshold, enable_blocking):
+@click.option('--block-threshold', type=int, help='Threshold for blocking commands')
+def monitor(enabled, action, notice_threshold, block_threshold):
     """Configure command monitoring settings."""
     config = Config()
+    # If no options provided, show current settings and help
+    if enabled is None and action is None and notice_threshold is None and block_threshold is None:
+        current_enabled = config.get('monitoring.enabled', True)
+        current_blocking = config.get('monitoring.blocking_enabled', False)
+        current_notice = config.get('monitoring.notice_threshold', 1)
+        current_block = config.get('monitoring.blocking_threshold', 5)
 
-    if enable is not None:
-        config.set('monitoring.enabled', enable)
-        status = "enabled" if enable else "disabled"
+        if not current_enabled:
+            current_action = "none"
+        elif current_blocking:
+            current_action = "block"
+        else:
+            current_action = "notice"
+
+        click.echo("Current monitoring settings:")
+        click.echo(f"  Enabled: {current_enabled}")
+        click.echo(f"  Action: {current_action}")
+        click.echo(f"  Notice threshold: {current_notice}")
+        click.echo(f"  Block threshold: {current_block}")
+        click.echo()
+        ctx = click.get_current_context()
+        click.echo(ctx.get_help())
+        ctx.exit()
+
+    if enabled is not None:
+        config.set('monitoring.enabled', enabled)
+        status = "enabled" if enabled else "disabled"
         click.echo(f"Command monitoring {status}")
+
+    if action is not None:
+        if action == 'none':
+            config.set('monitoring.blocking_enabled', False)
+            click.echo("Monitoring action set to: none (no action taken)")
+        elif action == 'notice':
+            config.set('monitoring.blocking_enabled', False)
+            click.echo("Monitoring action set to: notice (show suggestions)")
+        elif action == 'block':
+            config.set('monitoring.blocking_enabled', True)
+            click.echo("Monitoring action set to: block (prevent command execution)")
+            click.echo("⚠️  Warning: Commands will be blocked when threshold is reached!")
+            click.echo("   Make sure you know your aliases or switch to notice action if needed.")
 
     if notice_threshold is not None:
         config.set('monitoring.notice_threshold', notice_threshold)
         click.echo(f"Notice threshold set to {notice_threshold}")
 
-    if blocking_threshold is not None:
-        config.set('monitoring.blocking_threshold', blocking_threshold)
-        click.echo(f"Blocking threshold set to {blocking_threshold}")
-
-    if enable_blocking is not None:
-        config.set('monitoring.blocking_enabled', enable_blocking)
-        status = "enabled" if enable_blocking else "disabled"
-        click.echo(f"Command blocking {status}")
-
-        if enable_blocking:
-            click.echo("⚠️  Warning: Commands will be blocked when threshold is reached!")
-            click.echo("   Make sure you know your aliases or disable blocking if needed.")
+    if block_threshold is not None:
+        config.set('monitoring.blocking_threshold', block_threshold)
+        click.echo(f"Block threshold set to {block_threshold}")
 
 
 @main.command()
@@ -110,16 +138,27 @@ def status():
     click.echo("FastParrot Status:")
     click.echo(f"  Version: {config.get('version', '1.0.0')}")
     click.echo(f"  Config dir: {config.config_dir}")
-    click.echo(f"  Monitoring: {'enabled' if config.get('monitoring.enabled', True) else 'disabled'}")
+
+    # Show monitoring settings
+    enabled = config.get('monitoring.enabled', True)
+    blocking_enabled = config.get('monitoring.blocking_enabled', False)
+
+    if not enabled:
+        action = "none"
+    elif blocking_enabled:
+        action = "block"
+    else:
+        action = "notice"
+
+    click.echo(f"  Monitoring enabled: {enabled}")
+    click.echo(f"  Action: {action}")
 
     # Show monitoring settings
     notice_threshold = config.get('monitoring.notice_threshold', 1)
-    blocking_threshold = config.get('monitoring.blocking_threshold', 3)
-    blocking_enabled = config.get('monitoring.blocking_enabled', False)
+    blocking_threshold = config.get('monitoring.blocking_threshold', 5)
 
     click.echo(f"  Notice threshold: {notice_threshold}")
-    click.echo(f"  Blocking threshold: {blocking_threshold}")
-    click.echo(f"  Blocking: {'enabled' if blocking_enabled else 'disabled'}")
+    click.echo(f"  Block threshold: {blocking_threshold}")
     click.echo(f"  Tracking: only commands with aliases")
 
     aliases = collector.collect_all()

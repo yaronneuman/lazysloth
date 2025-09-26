@@ -55,7 +55,8 @@ class CommandMonitor:
         # Check for notice or blocking
         return self._check_for_action(command, stats[alias_name], existing_alias)
 
-    def _generate_alias_suggestion(self, command: str, alias_name: str, alias_data: Dict) -> str:
+    @staticmethod
+    def _generate_alias_suggestion(command: str, alias_name: str, alias_data: Dict) -> str:
         """Generate a proper alias suggestion that handles commands with arguments."""
         alias_command = alias_data.get('command', '')
 
@@ -92,7 +93,7 @@ class CommandMonitor:
                     f"\nUse {suggested_command} instead of '{command}'"
                     )
         # Check for notice (show every time when at threshold, before blocking)
-        if (existing_alias and notice_threshold <= count < blocking_threshold):
+        if existing_alias and notice_threshold <= count:
             suggested_command = self._generate_alias_suggestion(command, alias_name, alias_data)
             return f"\n🦥💡 You can use {suggested_command} instead of '{command}'"
 
