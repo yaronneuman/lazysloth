@@ -95,12 +95,25 @@ class Installer:
             f.write(integration_code)
             f.write("\n# End FastParrot integration\n")
 
+        # Ensure .fastparrotrc exists and is sourced
+        from .fastparrotrc import FastParrotRC
+        fastparrotrc = FastParrotRC()
+        fastparrotrc.ensure_exists()
+
     def _generate_integration_code(self, shell: str) -> str:
         """Generate shell-specific integration code."""
         python_path = shutil.which('python3') or shutil.which('python')
 
+        # Get .fastparrotrc source line
+        from .fastparrotrc import FastParrotRC
+        fastparrotrc = FastParrotRC()
+        fastparrotrc_source = fastparrotrc.get_source_line(shell)
+
         if shell == 'bash':
             return f'''
+# Source FastParrot user aliases
+{fastparrotrc_source}
+
 # FastParrot command monitoring hook
 fastparrot_preexec() {{
     if [ -n "${{BASH_COMMAND}}" ]; then
@@ -112,6 +125,9 @@ trap 'fastparrot_preexec' DEBUG
 
         elif shell == 'zsh':
             return f'''
+# Source FastParrot user aliases
+{fastparrotrc_source}
+
 # FastParrot ZLE widget for command interception
 
 # FastParrot command interceptor widget
@@ -155,6 +171,9 @@ bindkey "^J" fastparrot_widget
 
         elif shell == 'fish':
             return f'''
+# Source FastParrot user aliases
+{fastparrotrc_source}
+
 # FastParrot command monitoring hook
 function fastparrot_preexec --on-event fish_preexec
     {python_path} -m fastparrot.monitors.hook "$argv" 2>/dev/null || true

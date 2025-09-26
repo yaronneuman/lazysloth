@@ -55,6 +55,55 @@ def uninstall(shell):
         sys.exit(1)
 
 @main.command()
+@click.argument('alias_name', required=True)
+@click.argument('command', required=True)
+def add(alias_name, command):
+    """Add a new alias. Usage: fastparrot add <alias> "command"
+
+    Example: fastparrot add gs "git status --porcelain"
+    """
+    if not alias_name or not command:
+        click.echo("❌ Both alias name and command are required", err=True)
+        sys.exit(1)
+
+    try:
+        config = Config()
+
+        # Check if alias already exists in FastParrot's database
+        aliases = config.get_aliases_data()
+        if alias_name in aliases:
+            existing_command = aliases[alias_name].get('command', '')
+            if existing_command == command:
+                click.echo(f"✅ Alias '{alias_name}' already exists with the same command")
+                return
+            else:
+                click.echo(f"⚠️  Alias '{alias_name}' already exists with command: {existing_command}")
+                if not click.confirm("Do you want to overwrite it?"):
+                    click.echo("Operation cancelled")
+                    return
+
+        # Add the new alias to FastParrot's database
+        aliases[alias_name] = {
+            'command': command,
+            'shell': 'user_defined',
+            'source_file': '.fastparrotrc',
+            'type': 'alias'
+        }
+        config.save_aliases_data(aliases)
+
+        # Add the alias to .fastparrotrc file
+        from .core.fastparrotrc import FastParrotRC
+        fastparrotrc = FastParrotRC()
+        fastparrotrc.add_alias(alias_name, command)
+
+        click.echo(f"✅ Added alias: {alias_name} -> {command}")
+        click.echo(f"💡 Alias added to ~/.fastparrotrc and will be available in new shell sessions")
+
+    except Exception as e:
+        click.echo(f"❌ Failed to add alias: {e}", err=True)
+        sys.exit(1)
+
+@main.command()
 def collect():
     """Collect existing aliases from shell configuration files."""
     collector = AliasCollector()

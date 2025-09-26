@@ -9,7 +9,7 @@ from pathlib import Path
 from click.testing import CliRunner
 from unittest.mock import patch, MagicMock
 
-from fastparrot.cli import main, install, uninstall, collect, monitor, status
+from fastparrot.cli import main, install, uninstall, collect, monitor, status, add
 
 
 @pytest.mark.integration
@@ -215,6 +215,104 @@ class TestCLI:
 
         assert result.exit_code == 0
         assert 'Monitoring action set to: notice' in result.output
+
+    @patch('fastparrot.cli.Config')
+    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
+    def test_add_command_success(self, mock_fastparrotrc_class, mock_config_class):
+        """Test add command successful execution."""
+        # Mock config
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {}  # No existing aliases
+        mock_config_class.return_value = mock_config
+
+        # Mock FastParrotRC
+        mock_fastparrotrc = MagicMock()
+        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+
+        runner = CliRunner()
+        result = runner.invoke(add, ['gs', 'git status'])
+
+        assert result.exit_code == 0
+        assert '✅ Added alias: gs -> git status' in result.output
+        assert 'Alias added to ~/.fastparrotrc' in result.output
+        mock_config.save_aliases_data.assert_called_once()
+        mock_fastparrotrc.add_alias.assert_called_once_with('gs', 'git status')
+
+    @patch('fastparrot.cli.Config')
+    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
+    def test_add_command_with_complex_command(self, mock_fastparrotrc_class, mock_config_class):
+        """Test add command with complex multi-word command."""
+        # Mock config
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {}
+        mock_config_class.return_value = mock_config
+
+        # Mock FastParrotRC
+        mock_fastparrotrc = MagicMock()
+        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+
+        runner = CliRunner()
+        result = runner.invoke(add, ['ll', 'ls -la --color=auto --human-readable'])
+
+        assert result.exit_code == 0
+        assert '✅ Added alias: ll -> ls -la --color=auto --human-readable' in result.output
+
+    @patch('fastparrot.cli.Config')
+    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
+    def test_add_command_overwrite_existing(self, mock_fastparrotrc_class, mock_config_class):
+        """Test add command when alias already exists."""
+        # Mock config with existing alias
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'bash'}
+        }
+        mock_config_class.return_value = mock_config
+
+        # Mock FastParrotRC
+        mock_fastparrotrc = MagicMock()
+        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+
+        runner = CliRunner()
+        # Test overwriting with same command
+        result = runner.invoke(add, ['gs', 'git status'])
+
+        assert result.exit_code == 0
+        assert '✅ Alias \'gs\' already exists with the same command' in result.output
+
+    @patch('fastparrot.cli.Config')
+    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
+    def test_add_command_overwrite_different(self, mock_fastparrotrc_class, mock_config_class):
+        """Test add command when alias exists with different command."""
+        # Mock config with existing alias
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'bash'}
+        }
+        mock_config_class.return_value = mock_config
+
+        # Mock FastParrotRC
+        mock_fastparrotrc = MagicMock()
+        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+
+        runner = CliRunner()
+        # Test overwriting with different command - answer 'no'
+        result = runner.invoke(add, ['gs', 'git show'], input='n\n')
+
+        assert result.exit_code == 0
+        assert 'already exists with command: git status' in result.output
+        assert 'Operation cancelled' in result.output
+
+    def test_add_command_empty_args(self):
+        """Test add command with empty arguments."""
+        runner = CliRunner()
+        result = runner.invoke(add, ['', 'git status'])
+
+        assert result.exit_code == 1
+        assert '❌ Both alias name and command are required' in result.output
+
+        result = runner.invoke(add, ['gs', ''])
+        assert result.exit_code == 1
+        assert '❌ Both alias name and command are required' in result.output
 
     @patch('fastparrot.cli.Config')
     @patch('fastparrot.cli.AliasCollector')
