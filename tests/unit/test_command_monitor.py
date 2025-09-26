@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
-from fastparrot.monitors.command_monitor import CommandMonitor
+from fastparrot.monitors.command_monitor import CommandMonitor, MonitorAction, MonitorResult
 
 
 @pytest.mark.unit
@@ -98,9 +98,9 @@ class TestCommandMonitor:
 
                 # Should suggest alias immediately (threshold = 1)
                 assert result is not None
-                assert "🦥💡" in result
-                assert "'gs'" in result
-                assert "git status" in result
+                assert result.is_notice()
+                assert "'gs'" in result.message
+                assert "git status" in result.message
 
     def test_record_command_blocking_threshold(self, isolated_config, mock_datetime):
         """Test command blocking when threshold is reached."""
@@ -138,9 +138,8 @@ class TestCommandMonitor:
 
                 # Should block command
                 assert result is not None
-                assert "Command blocked!" in result
-                assert "🚫🦥" in result
-                assert "'gs'" in result
+                assert result.is_blocking()
+                assert "'gs'" in result.message
 
     def test_record_command_notice_threshold(self, isolated_config, mock_datetime):
         """Test command notice when between notice and blocking threshold."""
@@ -178,8 +177,8 @@ class TestCommandMonitor:
 
                 # Should show notice
                 assert result is not None
-                assert "🦥💡" in result
-                assert "'gs'" in result
+                assert result.is_notice()
+                assert "'gs'" in result.message
 
     def test_generate_alias_suggestion_exact_match(self, isolated_config):
         """Test alias suggestion generation for exact match."""

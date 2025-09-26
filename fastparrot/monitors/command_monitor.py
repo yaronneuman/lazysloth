@@ -1,8 +1,32 @@
 import os
 from datetime import datetime
+from dataclasses import dataclass
+from enum import Enum
 from typing import Dict, Optional, Tuple
 from ..core.config import Config
 from ..collectors.alias_collector import AliasCollector
+
+
+class MonitorAction(Enum):
+    """Enum representing the action to take based on command monitoring."""
+    NO_ACTION = "no_action"
+    NOTICE = "notice"
+    BLOCK = "block"
+
+
+@dataclass
+class MonitorResult:
+    """Result of command monitoring containing action and message."""
+    action: MonitorAction
+    message: str
+
+    def is_blocking(self) -> bool:
+        """Check if this result represents a blocking action."""
+        return self.action == MonitorAction.BLOCK
+
+    def is_notice(self) -> bool:
+        """Check if this result represents a notice action."""
+        return self.action == MonitorAction.NOTICE
 
 class CommandMonitor:
     """Monitors command usage and provides alias suggestions."""
@@ -11,10 +35,10 @@ class CommandMonitor:
         self.config = Config()
         self.collector = AliasCollector()
 
-    def record_command(self, command: str) -> Optional[str]:
+    def record_command(self, command: str) -> Optional[MonitorResult]:
         """
-        Record a command execution by alias and return suggestion/blocking message.
-        Returns suggestion text, blocking message, or None.
+        Record a command execution by alias and return monitor result.
+        Returns MonitorResult with action and message, or None if no action needed.
         """
         if not self.config.get('monitoring.enabled', True):
             return None
@@ -137,7 +161,7 @@ class CommandMonitor:
         # Fallback - just suggest the alias (shouldn't happen with current logic)
         return f"'{alias_name}'"
 
-    def _check_for_action(self, command: str, command_stats: Dict, existing_alias) -> Optional[str]:
+    def _check_for_action(self, command: str, command_stats: Dict, existing_alias) -> Optional[MonitorResult]:
         """Check if we should show notice, block command, or do nothing."""
         notice_threshold = self.config.get('monitoring.notice_threshold', 1)
         blocking_threshold = self.config.get('monitoring.blocking_threshold', 3)
@@ -153,14 +177,16 @@ class CommandMonitor:
             existing_alias and
             count >= blocking_threshold):
             suggested_command = self._generate_alias_suggestion(command, alias_name, alias_data)
-            return (f"\nCommand blocked!"
-                    f"\n🚫🦥 Time to be lazy."
-                    f"\nUse {suggested_command} instead of '{command}'"
-                    )
+            message = (f"\n🚫🦥 Time to be lazy."
+                      f"\nUse {suggested_command} instead of '{command}'"
+                      )
+            return MonitorResult(MonitorAction.BLOCK, message)
+
         # Check for notice (show every time when at threshold, before blocking)
         if existing_alias and notice_threshold <= count:
             suggested_command = self._generate_alias_suggestion(command, alias_name, alias_data)
-            return f"\n🦥💡 You can use {suggested_command} instead of '{command}'"
+            message = f"\n🦥💡 You can use {suggested_command} instead of '{command}'"
+            return MonitorResult(MonitorAction.NOTICE, message)
 
         return None
 

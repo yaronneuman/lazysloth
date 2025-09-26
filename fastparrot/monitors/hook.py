@@ -6,7 +6,7 @@ This is invoked before each command execution.
 
 import sys
 import os
-from .command_monitor import CommandMonitor
+from .command_monitor import CommandMonitor, MonitorAction
 
 def main():
     """Main entry point for the command hook."""
@@ -22,20 +22,20 @@ def main():
 
     try:
         monitor = CommandMonitor()
-        message = monitor.record_command(command)
-        if message:
+        result = monitor.record_command(command)
+        if result:
             # Print message to stdout for visibility
-            print(f"{message}", flush=True)
+            print(f"{result.message}", flush=True)
 
-            # If this is a blocking message, exit with error to prevent command execution
-            if "Command blocked!" in message:
+            # If this is a blocking action, exit with error to prevent command execution
+            if result.is_blocking():
                 sys.exit(1)
     except Exception as e:
         print("FastParrot failed:", e)
         # Silently fail - never block user commands due to FastParrot errors
         pass
 
-    # If no message or non-blocking message, exit with success (allow command)
+    # If no result or non-blocking action, exit with success (allow command)
     sys.exit(0)
 
 
