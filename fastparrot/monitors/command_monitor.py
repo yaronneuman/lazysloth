@@ -177,15 +177,15 @@ class CommandMonitor:
             existing_alias and
             count >= blocking_threshold):
             suggested_command = self._generate_alias_suggestion(command, alias_name, alias_data)
-            message = (f"\n🚫🦥 Time to be lazy."
-                      f"\nUse {suggested_command} instead of '{command}'"
+            message = (f"\n🦥🚫 Time to be lazy."
+                      f"\nUse \033[92m{suggested_command}\033[0m instead of '{command}'"
                       )
             return MonitorResult(MonitorAction.BLOCK, message)
 
         # Check for notice (show every time when at threshold, before blocking)
         if existing_alias and notice_threshold <= count:
             suggested_command = self._generate_alias_suggestion(command, alias_name, alias_data)
-            message = f"\n🦥💡 You can use {suggested_command} instead of '{command}'"
+            message = f"\n🦥💡 You can use \033[92m{suggested_command}\033[0m instead of '{command}'"
             return MonitorResult(MonitorAction.NOTICE, message)
 
         return None

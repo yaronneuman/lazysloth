@@ -75,7 +75,7 @@ class TestHook:
             with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 # Set up the mock to return a blocking message
-                blocking_message = "\n🚫🦥 Time to be lazy.\nUse 'gs' instead of 'git status'"
+                blocking_message = "\n🦥🚫 Time to be lazy.\nUse 'gs' instead of 'git status'"
                 mock_monitor.record_command.return_value = MonitorResult(
                     MonitorAction.BLOCK,
                     blocking_message
