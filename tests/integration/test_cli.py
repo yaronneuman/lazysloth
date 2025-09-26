@@ -156,7 +156,7 @@ class TestCLI:
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--enable'])
+        result = runner.invoke(monitor, ['--enabled=true'])
 
         assert result.exit_code == 0
         assert 'Command monitoring enabled' in result.output
@@ -169,7 +169,7 @@ class TestCLI:
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--disable'])
+        result = runner.invoke(monitor, ['--enabled=false'])
 
         assert result.exit_code == 0
         assert 'Command monitoring disabled' in result.output
@@ -184,12 +184,12 @@ class TestCLI:
         runner = CliRunner()
         result = runner.invoke(monitor, [
             '--notice-threshold', '2',
-            '--blocking-threshold', '5'
+            '--block-threshold', '5'
         ])
 
         assert result.exit_code == 0
         assert 'Notice threshold set to 2' in result.output
-        assert 'Blocking threshold set to 5' in result.output
+        assert 'Block threshold set to 5' in result.output
 
     @patch('fastparrot.cli.Config')
     def test_monitor_command_enable_blocking(self, mock_config_class):
@@ -198,10 +198,10 @@ class TestCLI:
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--enable-blocking'])
+        result = runner.invoke(monitor, ['--action=block'])
 
         assert result.exit_code == 0
-        assert 'Command blocking enabled' in result.output
+        assert 'Monitoring action set to: block' in result.output
         assert 'Warning: Commands will be blocked' in result.output
 
     @patch('fastparrot.cli.Config')
@@ -211,14 +211,14 @@ class TestCLI:
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--disable-blocking'])
+        result = runner.invoke(monitor, ['--action=notice'])
 
         assert result.exit_code == 0
-        assert 'Command blocking disabled' in result.output
+        assert 'Monitoring action set to: notice' in result.output
 
     @patch('fastparrot.cli.Config')
     @patch('fastparrot.cli.AliasCollector')
-    @patch('fastparrot.cli.CommandMonitor')
+    @patch('fastparrot.monitors.command_monitor.CommandMonitor')
     def test_status_command_full(self, mock_monitor_class, mock_collector_class, mock_config_class):
         """Test status command showing full status."""
         # Mock config
@@ -255,16 +255,16 @@ class TestCLI:
         assert result.exit_code == 0
         assert 'FastParrot Status:' in result.output
         assert 'Version: 1.0.0' in result.output
-        assert 'Monitoring: enabled' in result.output
+        assert 'Monitoring enabled: True' in result.output
+        assert 'Action: block' in result.output
         assert 'Notice threshold: 2' in result.output
-        assert 'Blocking threshold: 5' in result.output
-        assert 'Blocking: enabled' in result.output
+        assert 'Block threshold: 5' in result.output
         assert 'Known aliases: 2' in result.output
         assert 'Tracked aliases: 2' in result.output
 
     @patch('fastparrot.cli.Config')
     @patch('fastparrot.cli.AliasCollector')
-    @patch('fastparrot.cli.CommandMonitor')
+    @patch('fastparrot.monitors.command_monitor.CommandMonitor')
     def test_status_command_disabled_monitoring(self, mock_monitor_class, mock_collector_class, mock_config_class):
         """Test status command when monitoring is disabled."""
         # Mock config with monitoring disabled
@@ -293,8 +293,8 @@ class TestCLI:
         result = runner.invoke(status)
 
         assert result.exit_code == 0
-        assert 'Monitoring: disabled' in result.output
-        assert 'Blocking: disabled' in result.output
+        assert 'Monitoring enabled: False' in result.output
+        assert 'Action: none' in result.output
         assert 'Known aliases: 0' in result.output
 
 
