@@ -273,3 +273,111 @@ class TestAliasCollector:
             # Should not raise exception
             aliases = collector._parse_bash_zsh_aliases(bad_file, 'bash')
             assert aliases == {}
+
+    def test_recursive_alias_resolution_basic(self, mock_home_dir):
+        """Test basic recursive alias resolution."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+
+            # Setup aliases: g -> git, gcm -> git commit -m
+            aliases = {
+                'g': {'command': 'git', 'shell': 'bash'},
+                'gcm': {'command': 'git commit -m', 'shell': 'bash'}
+            }
+
+            with patch.object(collector.config, 'get_aliases_data', return_value=aliases):
+                # Test: g commit -m "message" should suggest gcm
+                result = collector.find_alias_for_command('g commit -m "message"')
+                assert result is not None
+                alias_name, alias_data = result
+                assert alias_name == 'gcm'
+                assert alias_data['command'] == 'git commit -m'
+
+    def test_recursive_alias_resolution_multiple_levels(self, mock_home_dir):
+        """Test multiple levels of recursive alias resolution."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+
+            # Setup aliases: a -> b, b -> git, gc -> git commit
+            aliases = {
+                'a': {'command': 'b', 'shell': 'bash'},
+                'b': {'command': 'git', 'shell': 'bash'},
+                'gc': {'command': 'git commit', 'shell': 'bash'}
+            }
+
+            with patch.object(collector.config, 'get_aliases_data', return_value=aliases):
+                # Test: a commit should suggest gc
+                result = collector.find_alias_for_command('a commit')
+                assert result is not None
+                alias_name, alias_data = result
+                assert alias_name == 'gc'
+                assert alias_data['command'] == 'git commit'
+
+    def test_recursive_alias_resolution_prefers_most_specific(self, mock_home_dir):
+        """Test that recursive resolution prefers the most specific alias."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+
+            # Setup aliases with different levels of specificity
+            aliases = {
+                'g': {'command': 'git', 'shell': 'bash'},
+                'gc': {'command': 'git commit', 'shell': 'bash'},
+                'gcm': {'command': 'git commit -m', 'shell': 'bash'}
+            }
+
+            with patch.object(collector.config, 'get_aliases_data', return_value=aliases):
+                # Test: g commit -m "message" should suggest gcm (most specific)
+                result = collector.find_alias_for_command('g commit -m "message"')
+                assert result is not None
+                alias_name, alias_data = result
+                assert alias_name == 'gcm'
+
+                # Test: g commit should suggest gc
+                result = collector.find_alias_for_command('g commit')
+                assert result is not None
+                alias_name, alias_data = result
+                assert alias_name == 'gc'
+
+    def test_recursive_alias_expansion_circular_protection(self, mock_home_dir):
+        """Test that circular alias references are handled safely."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+
+            # Setup circular aliases: a -> b, b -> a
+            aliases = {
+                'a': {'command': 'b', 'shell': 'bash'},
+                'b': {'command': 'a', 'shell': 'bash'}
+            }
+
+            # This should not cause infinite recursion
+            expanded = collector._expand_aliases_in_command('a', aliases)
+            # Should return something (not crash), exact result may vary based on max_depth
+            assert isinstance(expanded, str)
+
+    def test_expand_aliases_in_command_no_aliases(self, mock_home_dir):
+        """Test command expansion when no aliases are present."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+            aliases = {}
+
+            command = 'git status'
+            expanded = collector._expand_aliases_in_command(command, aliases)
+            assert expanded == 'git status'
+
+    def test_expand_aliases_in_command_with_arguments(self, mock_home_dir):
+        """Test command expansion preserves arguments correctly."""
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            collector = AliasCollector()
+
+            aliases = {
+                'g': {'command': 'git', 'shell': 'bash'},
+                'l': {'command': 'ls -la', 'shell': 'bash'}
+            }
+
+            # Test with multiple arguments
+            expanded = collector._expand_aliases_in_command('g status --porcelain', aliases)
+            assert expanded == 'git status --porcelain'
+
+            # Test alias that already has arguments
+            expanded = collector._expand_aliases_in_command('l --color=auto', aliases)
+            assert expanded == 'ls -la --color=auto'

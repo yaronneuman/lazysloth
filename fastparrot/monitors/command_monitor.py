@@ -26,6 +26,10 @@ class CommandMonitor:
         if command_base in ignored_commands:
             return None
 
+        # Check if user is already using an optimal alias
+        if self._is_using_optimal_alias(command):
+            return None
+
         # Only track commands that have aliases
         existing_alias = self.collector.find_alias_for_command(command)
         if not existing_alias:
@@ -55,18 +59,79 @@ class CommandMonitor:
         # Check for notice or blocking
         return self._check_for_action(command, stats[alias_name], existing_alias)
 
-    @staticmethod
-    def _generate_alias_suggestion(command: str, alias_name: str, alias_data: Dict) -> str:
-        """Generate a proper alias suggestion that handles commands with arguments."""
+    def _is_using_optimal_alias(self, command: str) -> bool:
+        """Check if the user is already using the most optimal alias for this command."""
+        try:
+            # Get the first part of the command (the command itself)
+            command_parts = command.split()
+            if not command_parts:
+                return False
+
+            first_part = command_parts[0]
+
+            # Get all aliases
+            aliases = self.collector.config.get_aliases_data()
+
+            # Check if the first part is an alias
+            if first_part not in aliases:
+                return False  # Not using an alias at all
+
+            # Expand the command to see what it would become without aliases
+            expanded_command = self.collector._expand_aliases_in_command(command, aliases)
+
+            # Find what the optimal alias would be for the expanded command
+            optimal_alias = self.collector.find_alias_for_command(expanded_command)
+
+            if not optimal_alias:
+                return True  # No better alias exists
+
+            # Safely unpack the result
+            if isinstance(optimal_alias, tuple) and len(optimal_alias) == 2:
+                optimal_alias_name, optimal_alias_data = optimal_alias
+            else:
+                return True  # Couldn't get valid optimal alias
+
+            # If the user is already using the optimal alias, return True
+            if first_part == optimal_alias_name:
+                return True
+
+            # Check if this alias is equivalent to the optimal one
+            # (in case there are multiple aliases for the same command)
+            current_alias_command = aliases[first_part].get('command', '')
+            optimal_alias_command = optimal_alias_data.get('command', '')
+
+            if current_alias_command == optimal_alias_command:
+                return True
+
+            return False
+
+        except (AttributeError, TypeError, KeyError):
+            # If anything goes wrong, assume they're not using optimal alias
+            return False
+
+    def _generate_alias_suggestion(self, original_command: str, alias_name: str, alias_data: Dict) -> str:
+        """Generate a proper alias suggestion that handles recursive commands with arguments."""
         alias_command = alias_data.get('command', '')
 
-        # If the command is exactly the alias command, just suggest the alias
-        if command == alias_command:
+        # Try to expand the original command to see what it would become
+        try:
+            aliases = self.collector.config.get_aliases_data()
+            expanded_command = self.collector._expand_aliases_in_command(original_command, aliases)
+
+            # Ensure we got a string back (not a mock object)
+            if not isinstance(expanded_command, str):
+                expanded_command = original_command
+        except (AttributeError, TypeError):
+            # Fallback to original command if expansion fails (e.g., in tests with mocks)
+            expanded_command = original_command
+
+        # If the expanded command is exactly the alias command, just suggest the alias
+        if expanded_command == alias_command:
             return f"'{alias_name}'"
 
-        # If command starts with alias command + space, replace the base command with alias
-        if command.startswith(alias_command + ' '):
-            args = command[len(alias_command):]  # Get everything after the base command
+        # If expanded command starts with alias command + space, replace with alias + remaining args
+        if expanded_command.startswith(alias_command + ' '):
+            args = expanded_command[len(alias_command):]  # Get everything after the base command
             return f"'{alias_name}{args}'"
 
         # Fallback - just suggest the alias (shouldn't happen with current logic)

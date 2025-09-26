@@ -166,8 +166,44 @@ class AliasCollector:
         return aliases
 
     def find_alias_for_command(self, command: str) -> Optional[Tuple[str, Dict]]:
-        """Find the best alias for the given command (prefer most specific)."""
+        """Find the best alias for the given command with recursive resolution."""
         aliases = self.config.get_aliases_data()
+
+        # First, expand any aliases in the command recursively
+        expanded_command = self._expand_aliases_in_command(command, aliases)
+
+        # Then find the most specific alias for the expanded command
+        return self._find_most_specific_alias(expanded_command, aliases)
+
+    def _expand_aliases_in_command(self, command: str, aliases: Dict[str, Dict], max_depth: int = 10) -> str:
+        """Recursively expand aliases in a command to get the full form."""
+        if max_depth <= 0:
+            return command  # Prevent infinite recursion
+
+        parts = command.split()
+        if not parts:
+            return command
+
+        first_part = parts[0]
+        rest_parts = parts[1:] if len(parts) > 1 else []
+
+        # Check if the first part is an alias
+        if first_part in aliases:
+            alias_command = aliases[first_part].get('command', '')
+            if alias_command:
+                # Replace the first part with the alias command
+                if rest_parts:
+                    expanded = f"{alias_command} {' '.join(rest_parts)}"
+                else:
+                    expanded = alias_command
+
+                # Recursively expand in case the alias command contains more aliases
+                return self._expand_aliases_in_command(expanded, aliases, max_depth - 1)
+
+        return command
+
+    def _find_most_specific_alias(self, command: str, aliases: Dict[str, Dict]) -> Optional[Tuple[str, Dict]]:
+        """Find the most specific alias that matches the given command."""
         matches = []
 
         # Find all matching aliases
@@ -186,7 +222,7 @@ class AliasCollector:
             return None
 
         # Sort by length of alias command (descending) to prefer more specific aliases
-        # For example: "git status" (length 10) over "git" (length 3)
+        # For example: "git commit -m" (length 13) over "git" (length 3)
         matches.sort(key=lambda x: x[2], reverse=True)
 
         # Return the most specific match
