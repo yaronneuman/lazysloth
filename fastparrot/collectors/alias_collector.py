@@ -87,20 +87,32 @@ class AliasCollector:
             with open(config_file, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
 
-            # Pattern to match alias definitions
-            # Matches: alias name='command' or alias name="command"
+            # Process line by line to properly handle comments
+            lines = content.split('\n')
             alias_pattern = r"alias\s+([^=\s]+)=(['\"]?)([^'\"\n]+)\2"
 
-            for match in re.finditer(alias_pattern, content, re.MULTILINE):
-                alias_name = match.group(1)
-                alias_command = match.group(3)
+            for line in lines:
+                # Skip commented lines (lines that start with # after optional whitespace)
+                stripped_line = line.lstrip()
+                if stripped_line.startswith('#'):
+                    continue
 
-                aliases[alias_name] = {
-                    'command': alias_command,
-                    'shell': shell,
-                    'source_file': str(config_file),
-                    'type': 'alias'
-                }
+                # Skip lines that have text before 'alias' (not pure alias definitions)
+                if not stripped_line.startswith('alias '):
+                    continue
+
+                # Now try to match the alias pattern
+                match = re.search(alias_pattern, line)
+                if match:
+                    alias_name = match.group(1)
+                    alias_command = match.group(3)
+
+                    aliases[alias_name] = {
+                        'command': alias_command,
+                        'shell': shell,
+                        'source_file': str(config_file),
+                        'type': 'alias'
+                    }
 
         except (IOError, UnicodeDecodeError) as e:
             print(f"Warning: Could not read {config_file}: {e}")
@@ -115,19 +127,32 @@ class AliasCollector:
             with open(config_file, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
 
-            # Pattern for Fish aliases: alias name 'command'
+            # Process line by line to properly handle comments
+            lines = content.split('\n')
             alias_pattern = r"alias\s+([^\s]+)\s+(['\"]?)([^'\"\n]+)\2"
 
-            for match in re.finditer(alias_pattern, content, re.MULTILINE):
-                alias_name = match.group(1)
-                alias_command = match.group(3)
+            for line in lines:
+                # Skip commented lines (lines that start with # after optional whitespace)
+                stripped_line = line.lstrip()
+                if stripped_line.startswith('#'):
+                    continue
 
-                aliases[alias_name] = {
-                    'command': alias_command,
-                    'shell': 'fish',
-                    'source_file': str(config_file),
-                    'type': 'alias'
-                }
+                # Skip lines that have text before 'alias' (not pure alias definitions)
+                if not stripped_line.startswith('alias '):
+                    continue
+
+                # Now try to match the alias pattern
+                match = re.search(alias_pattern, line)
+                if match:
+                    alias_name = match.group(1)
+                    alias_command = match.group(3)
+
+                    aliases[alias_name] = {
+                        'command': alias_command,
+                        'shell': 'fish',
+                        'source_file': str(config_file),
+                        'type': 'alias'
+                    }
 
         except (IOError, UnicodeDecodeError) as e:
             print(f"Warning: Could not read {config_file}: {e}")

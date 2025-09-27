@@ -28,6 +28,7 @@ class Config:
 
     def _default_config(self) -> Dict[str, Any]:
         """Return default configuration."""
+        home = Path.home()
         return {
             'version': '1.0.0',
             'monitoring': {
@@ -36,6 +37,22 @@ class Config:
                 'blocking_threshold': 5,   # Block command after N uses
                 'blocking_enabled': True,  # Whether to block commands
                 'ignored_commands': []
+            },
+            'monitored_files': {
+                'bash': [
+                    str(home / '.bashrc'),
+                    str(home / '.bash_aliases'),
+                    str(home / '.fastparrotrc')
+                ],
+                'zsh': [
+                    str(home / '.zshrc'),
+                    str(home / '.zsh_aliases'),
+                    str(home / '.fastparrotrc')
+                ],
+                'fish': [
+                    str(home / '.config/fish/config.fish'),
+                    str(home / '.fastparrotrc')
+                ]
             }
         }
 

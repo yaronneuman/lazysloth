@@ -3,6 +3,8 @@ Unit tests for the AliasCollector class.
 """
 
 import pytest
+import tempfile
+import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -381,3 +383,74 @@ class TestAliasCollector:
             # Test alias that already has arguments
             expanded = collector._expand_aliases_in_command('l --color=auto', aliases)
             assert expanded == 'ls -la --color=auto'
+
+    def test_parse_bash_zsh_aliases_ignores_comments(self, isolated_config):
+        """Test that commented aliases are not parsed."""
+        test_content = """
+# This is a commented alias
+# alias commented_alias='echo commented'
+
+# Regular aliases that should be found
+alias valid_alias='echo valid'
+alias another_valid="git status"
+
+# Mixed scenarios
+alias normal_alias='echo normal'  # This should work
+# alias disabled_alias='echo disabled'  # This should be ignored
+
+    # Indented comment
+    # alias indented_commented='echo indented comment'
+
+    alias indented_valid='echo indented valid'  # Should work
+
+# Inline comment scenarios (these should be ignored)
+echo "test" # alias inline_comment='echo inline'
+some_command && alias after_command='echo after'  # This has text before alias
+
+# Edge cases
+alias edge1='echo test'
+#alias edge2='echo test2'
+ # alias edge3='echo test3'
+"""
+
+        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            mock_config.return_value = isolated_config
+
+            collector = AliasCollector()
+
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.zshrc', delete=False) as f:
+                f.write(test_content)
+                f.flush()
+
+                try:
+                    aliases = collector._parse_bash_zsh_aliases(Path(f.name), 'zsh')
+
+                    # Should find these valid aliases
+                    expected_aliases = {
+                        'valid_alias': 'echo valid',
+                        'another_valid': 'git status',
+                        'normal_alias': 'echo normal',
+                        'indented_valid': 'echo indented valid',
+                        'edge1': 'echo test'
+                    }
+
+                    # Should NOT find these (they're commented or have text before alias)
+                    forbidden_aliases = [
+                        'commented_alias', 'disabled_alias', 'indented_commented',
+                        'inline_comment', 'after_command', 'edge2', 'edge3'
+                    ]
+
+                    # Check expected aliases were found
+                    for name, expected_cmd in expected_aliases.items():
+                        assert name in aliases, f"Missing expected alias: {name}"
+                        assert aliases[name]['command'] == expected_cmd, f"Wrong command for {name}"
+
+                    # Check forbidden aliases were NOT found
+                    for name in forbidden_aliases:
+                        assert name not in aliases, f"Found forbidden (commented) alias: {name}"
+
+                    # Should have exactly the expected number
+                    assert len(aliases) == len(expected_aliases)
+
+                finally:
+                    os.unlink(f.name)

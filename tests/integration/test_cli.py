@@ -3,13 +3,12 @@ Integration tests for the FastParrot CLI.
 """
 
 import pytest
-import os
 import tempfile
 from pathlib import Path
 from click.testing import CliRunner
 from unittest.mock import patch, MagicMock
 
-from fastparrot.cli import main, install, uninstall, collect, monitor, status, add
+from fastparrot.cli import main, install, uninstall, monitor, status, add
 
 
 @pytest.mark.integration
@@ -116,73 +115,41 @@ class TestCLI:
         assert result.exit_code == 1
         assert '❌ Uninstallation failed: Uninstall failed' in result.output
 
-    @patch('fastparrot.cli.AliasCollector')
-    def test_collect_command_success(self, mock_collector_class):
-        """Test collect command successful execution."""
-        mock_collector = MagicMock()
-        mock_collector.collect_all.return_value = {
-            'gs': {'command': 'git status'},
-            'll': {'command': 'ls -la'},
-            'dps': {'command': 'docker ps'}
-        }
-        mock_collector_class.return_value = mock_collector
-
-        runner = CliRunner()
-        result = runner.invoke(collect)
-
-        assert result.exit_code == 0
-        assert 'Found 3 aliases:' in result.output
-        assert 'gs: git status' in result.output
-        assert 'll: ls -la' in result.output
-        assert 'dps: docker ps' in result.output
-
-    @patch('fastparrot.cli.AliasCollector')
-    def test_collect_command_failure(self, mock_collector_class):
-        """Test collect command when collection fails."""
-        mock_collector = MagicMock()
-        mock_collector.collect_all.side_effect = Exception("Collection failed")
-        mock_collector_class.return_value = mock_collector
-
-        runner = CliRunner()
-        result = runner.invoke(collect)
-
-        assert result.exit_code == 1
-        assert '❌ Collection failed: Collection failed' in result.output
 
     @patch('fastparrot.cli.Config')
-    def test_monitor_command_enable(self, mock_config_class):
-        """Test monitor command enabling monitoring."""
+    def test_monitor_config_command_enable(self, mock_config_class):
+        """Test monitor config command enabling monitoring."""
         mock_config = MagicMock()
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--enabled=true'])
+        result = runner.invoke(monitor, ['config', '--enabled=true'])
 
         assert result.exit_code == 0
         assert 'Command monitoring enabled' in result.output
         mock_config.set.assert_called_with('monitoring.enabled', True)
 
     @patch('fastparrot.cli.Config')
-    def test_monitor_command_disable(self, mock_config_class):
-        """Test monitor command disabling monitoring."""
+    def test_monitor_config_command_disable(self, mock_config_class):
+        """Test monitor config command disabling monitoring."""
         mock_config = MagicMock()
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--enabled=false'])
+        result = runner.invoke(monitor, ['config', '--enabled=false'])
 
         assert result.exit_code == 0
         assert 'Command monitoring disabled' in result.output
         mock_config.set.assert_called_with('monitoring.enabled', False)
 
     @patch('fastparrot.cli.Config')
-    def test_monitor_command_thresholds(self, mock_config_class):
-        """Test monitor command setting thresholds."""
+    def test_monitor_config_command_thresholds(self, mock_config_class):
+        """Test monitor config command setting thresholds."""
         mock_config = MagicMock()
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, [
+        result = runner.invoke(monitor, ['config',
             '--notice-threshold', '2',
             '--block-threshold', '5'
         ])
@@ -192,26 +159,26 @@ class TestCLI:
         assert 'Block threshold set to 5' in result.output
 
     @patch('fastparrot.cli.Config')
-    def test_monitor_command_enable_blocking(self, mock_config_class):
-        """Test monitor command enabling blocking with warning."""
+    def test_monitor_config_command_enable_blocking(self, mock_config_class):
+        """Test monitor config command enabling blocking with warning."""
         mock_config = MagicMock()
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--action=block'])
+        result = runner.invoke(monitor, ['config', '--action=block'])
 
         assert result.exit_code == 0
         assert 'Monitoring action set to: block' in result.output
         assert 'Warning: Commands will be blocked' in result.output
 
     @patch('fastparrot.cli.Config')
-    def test_monitor_command_disable_blocking(self, mock_config_class):
-        """Test monitor command disabling blocking."""
+    def test_monitor_config_command_disable_blocking(self, mock_config_class):
+        """Test monitor config command disabling blocking."""
         mock_config = MagicMock()
         mock_config_class.return_value = mock_config
 
         runner = CliRunner()
-        result = runner.invoke(monitor, ['--action=notice'])
+        result = runner.invoke(monitor, ['config', '--action=notice'])
 
         assert result.exit_code == 0
         assert 'Monitoring action set to: notice' in result.output
@@ -315,9 +282,9 @@ class TestCLI:
         assert '❌ Both alias name and command are required' in result.output
 
     @patch('fastparrot.cli.Config')
-    @patch('fastparrot.cli.AliasCollector')
+    @patch('fastparrot.cli.AutoLearner')
     @patch('fastparrot.monitors.command_monitor.CommandMonitor')
-    def test_status_command_full(self, mock_monitor_class, mock_collector_class, mock_config_class):
+    def test_status_command_full(self, mock_monitor_class, mock_learner_class, mock_config_class):
         """Test status command showing full status."""
         # Mock config
         mock_config = MagicMock()
@@ -331,13 +298,17 @@ class TestCLI:
         mock_config.config_dir = Path('/home/user/.config/fastparrot')
         mock_config_class.return_value = mock_config
 
-        # Mock collector
-        mock_collector = MagicMock()
-        mock_collector.collect_all.return_value = {
+        # Mock learner
+        mock_learner = MagicMock()
+        mock_learner.get_monitored_files.return_value = {
+            'bash': ['/home/user/.bashrc'],
+            'zsh': ['/home/user/.zshrc']
+        }
+        mock_config.get_aliases_data.return_value = {
             'gs': {'command': 'git status'},
             'll': {'command': 'ls -la'}
         }
-        mock_collector_class.return_value = mock_collector
+        mock_learner_class.return_value = mock_learner
 
         # Mock command monitor
         mock_monitor = MagicMock()
@@ -358,12 +329,13 @@ class TestCLI:
         assert 'Notice threshold: 2' in result.output
         assert 'Block threshold: 5' in result.output
         assert 'Known aliases: 2' in result.output
+        assert 'Monitored files: 2' in result.output
         assert 'Tracked aliases: 2' in result.output
 
     @patch('fastparrot.cli.Config')
-    @patch('fastparrot.cli.AliasCollector')
+    @patch('fastparrot.cli.AutoLearner')
     @patch('fastparrot.monitors.command_monitor.CommandMonitor')
-    def test_status_command_disabled_monitoring(self, mock_monitor_class, mock_collector_class, mock_config_class):
+    def test_status_command_disabled_monitoring(self, mock_monitor_class, mock_learner_class, mock_config_class):
         """Test status command when monitoring is disabled."""
         # Mock config with monitoring disabled
         mock_config = MagicMock()
@@ -377,10 +349,11 @@ class TestCLI:
         mock_config.config_dir = Path('/home/user/.config/fastparrot')
         mock_config_class.return_value = mock_config
 
-        # Mock collector
-        mock_collector = MagicMock()
-        mock_collector.collect_all.return_value = {}
-        mock_collector_class.return_value = mock_collector
+        # Mock learner
+        mock_learner = MagicMock()
+        mock_learner.get_monitored_files.return_value = {}
+        mock_config.get_aliases_data.return_value = {}
+        mock_learner_class.return_value = mock_learner
 
         # Mock command monitor
         mock_monitor = MagicMock()
@@ -394,6 +367,7 @@ class TestCLI:
         assert 'Monitoring enabled: False' in result.output
         assert 'Action: none' in result.output
         assert 'Known aliases: 0' in result.output
+        assert 'Monitored files: 0' in result.output
 
 
 @pytest.mark.integration
@@ -429,41 +403,3 @@ class TestCLIWithRealFiles:
                     assert '# FastParrot integration' not in content
                     assert 'fastparrot_preexec()' not in content
 
-    def test_collect_with_real_files(self):
-        """Test collect command with real shell configuration files."""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            home_dir = Path(tmp_dir)
-
-            # Create realistic shell config files
-            bashrc = home_dir / '.bashrc'
-            bashrc.write_text("""
-# Bash configuration
-alias ll='ls -la'
-alias gs='git status'
-alias ..='cd ..'
-""")
-
-            zshrc = home_dir / '.zshrc'
-            zshrc.write_text("""
-# Zsh configuration
-alias dps='docker ps'
-alias gp='git push'
-""")
-
-            # Create fish config
-            fish_config_dir = home_dir / '.config' / 'fish'
-            fish_config_dir.mkdir(parents=True)
-            fish_config = fish_config_dir / 'config.fish'
-            fish_config.write_text("""
-# Fish configuration
-alias gc 'git commit'
-""")
-
-            with patch.object(Path, 'home', return_value=home_dir):
-                runner = CliRunner()
-                result = runner.invoke(collect)
-
-                assert result.exit_code == 0
-                # Should find aliases from all shell configs
-                assert 'Found' in result.output
-                assert 'aliases:' in result.output

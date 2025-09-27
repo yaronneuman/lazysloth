@@ -7,6 +7,7 @@ This is invoked before each command execution.
 import sys
 import os
 from .command_monitor import CommandMonitor, MonitorAction
+from ..core.file_watcher import FileWatcher
 
 def main():
     """Main entry point for the command hook."""
@@ -21,6 +22,11 @@ def main():
         sys.exit(0)  # Allow command to proceed
 
     try:
+        # Check for file changes and relearn if needed (silently)
+        watcher = FileWatcher()
+        watcher.check_and_relearn_if_needed()
+
+        # Monitor command usage
         monitor = CommandMonitor()
         result = monitor.record_command(command)
         if result:

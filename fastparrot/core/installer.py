@@ -11,6 +11,27 @@ class Installer:
         self.package_dir = Path(__file__).parent.parent
         self.shells_dir = self.package_dir / 'shells'
 
+    def _clean_fastparrot_data(self):
+        """Clean FastParrot learned data files while preserving configuration."""
+        from .config import Config
+        config = Config()
+
+        # Files to remove (learned data)
+        files_to_remove = [
+            config.aliases_file,          # ~/.config/fastparrot/aliases.yaml
+            config.stats_file,            # ~/.config/fastparrot/stats.yaml
+            config.config_dir / '.file_mtimes',      # file change tracking
+            config.config_dir / '.last_file_check'   # last check timestamp
+        ]
+
+        for file_path in files_to_remove:
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+            except OSError:
+                # Silently continue if we can't remove a file
+                pass
+
     def detect_shell(self) -> str:
         """Detect the user's current shell."""
         shell_path = os.environ.get('SHELL', '/bin/bash')
@@ -85,6 +106,9 @@ class Installer:
         # Always clean up existing installations first (especially when using --force)
         if already_installed:
             self.uninstall(shell)
+        elif force:
+            # Even if not detected as installed, clean data when forcing reinstall
+            self._clean_fastparrot_data()
 
         # Generate integration code
         integration_code = self._generate_integration_code(shell)
@@ -207,3 +231,6 @@ end
 
         with open(config_file, 'w') as f:
             f.write(cleaned_content)
+
+        # Clean up FastParrot learned data
+        self._clean_fastparrot_data()

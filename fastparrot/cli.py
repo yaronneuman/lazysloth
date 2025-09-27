@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
-from email.policy import default
-from os import close
-from pickle import FALSE
 
 import click
 import sys
 from pathlib import Path
 from .core.config import Config
 from .core.installer import Installer
-from .collectors.alias_collector import AliasCollector
-from .monitors.command_monitor import CommandMonitor
+from .core.auto_learner import AutoLearner
 
 @click.group()
 @click.version_option()
 def main():
-    """FastParrot: Learn and share terminal shortcuts and aliases."""
+    """FastParrot: Learn and share terminal shortcuts and aliases.
+
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⠖⢶⣦⣄⡀⠀⢀⣴⣶⠟⠓⣶⣦⣄⡀⠀⠀⠀⠀⠀⣀⣤⣤⣀⡀⠀⠀⢠⣤⣤⣄⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⣿⡄⠀⣿⠈⢻⣤⣾⠏⠀⠀⠀⠈⢷⡈⠻⣦⡀⠀⣠⣾⠟⠋⠀⠙⣿⣶⣴⠏⢠⣿⠋⠉⣷⡄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠁⠈⣿⠀⣿⠃⢸⣿⡏⠀⠀⠀⠀⠀⢸⡻⣦⣹⣇⢠⣿⠃⠀⠀⠀⠀⠘⣇⠙⣧⡿⢁⣴⠞⠛⢿⡆⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⠃⠀⠀⢹⣷⣿⣰⡿⢿⡇⠀⠀⠀⠀⠀⢸⢻⣜⣷⣿⣿⡇⠀⠀⠀⠀⠀⠀⣟⣷⣹⣁⡞⠁⠀⠀⠘⣿⡄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣿⡟⠀⠀⠀⠈⠉⢹⡟⠁⢸⡇⠀⠀⠀⠀⠀⢸⡆⠙⠃⢀⣿⠀⠀⠀⠀⠀⠀⠀⣿⠛⣿⠛⠀⠀⠀⠀⠀⢹⡇⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠈⣇⠀⢸⡇⠀⠀⠀⠀⠀⠀⣇⠀⠀⠘⣿⡄⠀⠀⠀⠀⠀⠀⢹⡀⢸⡇⠀⠀⠀⠀⠀⠘⣿⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⣿⡀⢸⣷⠀⠀⠀⠀⠀⠀⢻⡆⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠸⣧⢸⣿⠀⠀⠀⠀⠀⠀⢿⡆
+⠀⠀⠀⠀⣠⣤⣶⣶⣿⠿⢶⣶⣤⣄⠀⠀⠘⡇⠀⢻⡄⠀⠀⠀⠀⠀⠀⢳⡀⠀⢻⣧⠀⠀⠀⠀⠀⠀⠀⢿⣾⣿⠀⠀⠀⠀⠀⠀⢸⡇
+⠀⠀⣴⣿⢟⣯⣭⡎⠀⠀⢀⣤⡟⠻⣷⣄⠀⢹⡄⢸⣇⠀⠀⠀⠀⠀⠀⠈⣷⡀⠘⣿⡄⠀⠀⠀⠀⠀⠀⠀⢿⡏⠀⠀⠀⠀⠀⠀⢸⣧
+⢀⣾⢏⠞⠉⠀⠀⠀⠀⠀⠻⢿⣿⣀⠼⢿⣶⣶⣷⡀⣿⡀⠀⠀⠀⠀⠀⠀⢸⣇⠀⢻⣷⠀⠀⠀⠀⠀⠀⠀⠈⢿⣆⠀⠀⠀⠀⠀⢸⣿
+⣸⡷⠋⠀⠀⠀⠀⣠⣶⣿⠦⣤⠄⠀⠀⠀⣿⣿⣦⡀⣿⠇⠀⠀⠀⠀⠀⠀⠀⢻⡀⠈⣿⡆⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⠀⢸⣿
+⣿⢁⡴⣾⣿⡆⠀⠙⢛⣡⡾⠋⠀⠀⠀⢠⠇⠈⠛⣿⠏⠀⠀⠀⠀⠀⠀⠰⣄⠸⡗⠛⢻⣿⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⣼⣿
+⢿⡞⠀⠈⢉⡇⠉⠉⠉⠉⠀⠀⠀⠀⣠⠊⠀⢀⡾⠋⠀⠀⠀⠀⠀⢀⡀⠀⣿⠳⠇⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡄⠀⠀⣿⡇
+⠸⣷⠀⢠⠎⠀⠀⠀⠀⠀⠀⣀⠴⠋⠀⠖⠚⠋⠀⠀⠀⠀⠀⢀⡄⢸⣷⡀⣿⠀⠀⠀⣸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢰⣿⠇
+⠀⢻⣷⣯⣀⣀⣀⣀⣠⠤⠚⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠛⠿⣷⠇⠀⠀⢠⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⣾⡟⠀
+⠀⠈⢻⣷⡉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠃⠀
+⠀⠀⠀⢻⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⠃⠀⠀
+⠀⠀⠀⠀⠙⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⠇⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⠻⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⠃⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣾⠟⠁⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⢿⣿⣶⣦⣄⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣠⣴⣶⣿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⡻⠿⠿⣿⣿⣷⣶⣶⣶⣶⣶⣶⣶⣶⣶⣿⣿⠿⠿⢛⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    """
     pass
 
 @main.command()
@@ -29,8 +49,23 @@ def install(shell, force):
         click.echo(f"Detected shell: {shell}")
 
     try:
+        if force:
+            click.echo("🧹 Cleaning previous FastParrot data (aliases, stats, file tracking)...")
+
         installer.install(shell, force=force)
         click.echo(f"✅ FastParrot installed for {shell}")
+
+        # Automatically learn aliases from the detected shell
+        learner = AutoLearner()
+        click.echo(f"🎓 Learning aliases from {shell} configuration files...")
+        results = learner.learn_from_monitored_files(shell)
+
+        total_learned = results['learned'] + results['updated']
+        if total_learned > 0:
+            click.echo(f"   📚 Learned {total_learned} aliases")
+        else:
+            click.echo("   No aliases found to learn")
+
         click.echo("Restart your shell or run 'source ~/.bashrc' (or equivalent) to activate.")
     except Exception as e:
         click.echo(f"❌ Installation failed: {e}", err=True)
@@ -47,8 +82,11 @@ def uninstall(shell):
         click.echo(f"Detected shell: {shell}")
 
     try:
+        click.echo("🧹 Removing FastParrot integration and cleaning data (aliases, stats, file tracking)...")
         installer.uninstall(shell)
         click.echo(f"✅ FastParrot uninstalled from {shell}")
+        click.echo("💡 Configuration settings preserved in ~/.config/fastparrot/config.yaml")
+        click.echo("💡 User aliases preserved in ~/.fastparrotrc (will not be used until reinstalled)")
         click.echo("Restart your shell or run 'source ~/.bashrc' (or equivalent) to deactivate.")
     except Exception as e:
         click.echo(f"❌ Uninstallation failed: {e}", err=True)
@@ -103,86 +141,136 @@ def add(alias_name, command):
         click.echo(f"❌ Failed to add alias: {e}", err=True)
         sys.exit(1)
 
-@main.command()
-def collect():
-    """Collect existing aliases from shell configuration files."""
-    collector = AliasCollector()
 
-    try:
-        aliases = collector.collect_all()
-        click.echo(f"Found {len(aliases)} aliases:")
+@main.group()
+def monitor():
+    """Configure command monitoring and manage monitored files."""
+    pass
 
-        for alias_name, alias_data in aliases.items():
-            click.echo(f"  {alias_name}: {alias_data['command']}")
+@monitor.command()
+def status():
+    """Show current monitoring settings."""
+    config = Config()
+    current_enabled = config.get('monitoring.enabled', True)
+    current_blocking = config.get('monitoring.blocking_enabled', False)
+    current_notice = config.get('monitoring.notice_threshold', 1)
+    current_block = config.get('monitoring.blocking_threshold', 5)
 
-    except Exception as e:
-        click.echo(f"❌ Collection failed: {e}", err=True)
-        sys.exit(1)
+    if not current_enabled:
+        current_action = "none"
+    elif current_blocking:
+        current_action = "block"
+    else:
+        current_action = "notice"
 
-@main.command()
+    click.echo("Current monitoring settings:")
+    click.echo(f"  Enabled: {current_enabled}")
+    click.echo(f"  Action: {current_action}")
+    click.echo(f"  Notice threshold: {current_notice}")
+    click.echo(f"  Block threshold: {current_block}")
+
+@monitor.command()
 @click.option('--enabled', type=bool, help='Enable or disable monitoring (true/false)')
 @click.option('--action', type=click.Choice(['none', 'notice', 'block']), help='Set monitoring action: none (no action), notice (show suggestions), block (prevent command execution)')
 @click.option('--notice-threshold', type=int, help='Threshold for showing notices')
 @click.option('--block-threshold', type=int, help='Threshold for blocking commands')
-def monitor(enabled, action, notice_threshold, block_threshold):
+def config(enabled, action, notice_threshold, block_threshold):
     """Configure command monitoring settings."""
-    config = Config()
+    config_obj = Config()
+
     # If no options provided, show current settings and help
     if enabled is None and action is None and notice_threshold is None and block_threshold is None:
-        current_enabled = config.get('monitoring.enabled', True)
-        current_blocking = config.get('monitoring.blocking_enabled', False)
-        current_notice = config.get('monitoring.notice_threshold', 1)
-        current_block = config.get('monitoring.blocking_threshold', 5)
-
-        if not current_enabled:
-            current_action = "none"
-        elif current_blocking:
-            current_action = "block"
-        else:
-            current_action = "notice"
-
-        click.echo("Current monitoring settings:")
-        click.echo(f"  Enabled: {current_enabled}")
-        click.echo(f"  Action: {current_action}")
-        click.echo(f"  Notice threshold: {current_notice}")
-        click.echo(f"  Block threshold: {current_block}")
-        click.echo()
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
         ctx.exit()
 
     if enabled is not None:
-        config.set('monitoring.enabled', enabled)
+        config_obj.set('monitoring.enabled', enabled)
         status = "enabled" if enabled else "disabled"
         click.echo(f"Command monitoring {status}")
 
     if action is not None:
         if action == 'none':
-            config.set('monitoring.blocking_enabled', False)
+            config_obj.set('monitoring.blocking_enabled', False)
             click.echo("Monitoring action set to: none (no action taken)")
         elif action == 'notice':
-            config.set('monitoring.blocking_enabled', False)
+            config_obj.set('monitoring.blocking_enabled', False)
             click.echo("Monitoring action set to: notice (show suggestions)")
         elif action == 'block':
-            config.set('monitoring.blocking_enabled', True)
+            config_obj.set('monitoring.blocking_enabled', True)
             click.echo("Monitoring action set to: block (prevent command execution)")
             click.echo("⚠️  Warning: Commands will be blocked when threshold is reached!")
             click.echo("   Make sure you know your aliases or switch to notice action if needed.")
 
     if notice_threshold is not None:
-        config.set('monitoring.notice_threshold', notice_threshold)
+        config_obj.set('monitoring.notice_threshold', notice_threshold)
         click.echo(f"Notice threshold set to {notice_threshold}")
 
     if block_threshold is not None:
-        config.set('monitoring.blocking_threshold', block_threshold)
+        config_obj.set('monitoring.blocking_threshold', block_threshold)
         click.echo(f"Block threshold set to {block_threshold}")
+
+@monitor.command()
+@click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Show files for specific shell')
+@click.option('--add', help='Add file to monitoring list (requires --shell)')
+@click.option('--remove', help='Remove file from monitoring list (requires --shell)')
+def files(shell, add, remove):
+    """Manage monitored configuration files."""
+    learner = AutoLearner()
+
+    if add and shell:
+        # Add file to monitored list
+        if learner.add_monitored_file(shell, add):
+            click.echo(f"✅ Added {add} to {shell} monitored files")
+            # Automatically learn from the new file
+            click.echo("🎓 Learning aliases from new file...")
+            results = learner.learn_from_monitored_files(shell)
+            if results['learned'] > 0:
+                click.echo(f"   📚 Learned {results['learned']} new aliases")
+        else:
+            click.echo(f"⚠️  File {add} is already monitored for {shell}")
+
+    elif remove and shell:
+        # Remove file from monitored list
+        if learner.remove_monitored_file(shell, remove):
+            click.echo(f"✅ Removed {remove} from {shell} monitored files")
+        else:
+            click.echo(f"⚠️  File {remove} not found in {shell} monitored files")
+
+    elif add or remove:
+        click.echo("❌ --add and --remove require --shell option", err=True)
+        sys.exit(1)
+
+    else:
+        # Show current monitored files
+        monitored = learner.get_monitored_files(shell)
+
+        if shell:
+            files = monitored.get(shell, [])
+            click.echo(f"Monitored files for {shell}:")
+            if files:
+                for file_path in files:
+                    exists = "✅" if Path(file_path).exists() else "❌"
+                    click.echo(f"  {exists} {file_path}")
+            else:
+                click.echo("  None configured")
+        else:
+            click.echo("Monitored files by shell:")
+            for shell_name, files in monitored.items():
+                click.echo(f"  {shell_name}:")
+                if files:
+                    for file_path in files:
+                        exists = "✅" if Path(file_path).exists() else "❌"
+                        click.echo(f"    {exists} {file_path}")
+                else:
+                    click.echo("    None configured")
 
 
 @main.command()
 def status():
     """Show FastParrot status and configuration."""
     config = Config()
-    collector = AliasCollector()
+    learner = AutoLearner()
 
     click.echo("FastParrot Status:")
     click.echo(f"  Version: {config.get('version', '1.0.0')}")
@@ -210,8 +298,14 @@ def status():
     click.echo(f"  Block threshold: {blocking_threshold}")
     click.echo(f"  Tracking: only commands with aliases")
 
-    aliases = collector.collect_all()
+    # Show alias info
+    aliases = config.get_aliases_data()
     click.echo(f"  Known aliases: {len(aliases)}")
+
+    # Show monitored files summary
+    monitored = learner.get_monitored_files()
+    total_monitored_files = sum(len(files) for files in monitored.values())
+    click.echo(f"  Monitored files: {total_monitored_files}")
 
     # Show alias stats summary
     from .monitors.command_monitor import CommandMonitor

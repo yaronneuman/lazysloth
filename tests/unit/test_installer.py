@@ -288,3 +288,78 @@ old integration 2
             assert 'old integration 1' not in content
             assert 'old integration 2' not in content
             assert '# End FastParrot integration' not in content
+
+    def test_clean_fastparrot_data(self, mock_home_dir):
+        """Test that _clean_fastparrot_data removes the correct files."""
+        from fastparrot.core.installer import Installer
+
+        # Create installer and config
+        installer = Installer()
+
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            # Create config dir and files that should be removed
+            config_dir = mock_home_dir / '.config' / 'fastparrot'
+            config_dir.mkdir(parents=True, exist_ok=True)
+
+            # Create files that should be removed
+            aliases_file = config_dir / 'aliases.yaml'
+            stats_file = config_dir / 'stats.yaml'
+            file_mtimes = config_dir / '.file_mtimes'
+            last_check = config_dir / '.last_file_check'
+
+            # Create file that should be preserved
+            config_file = config_dir / 'config.yaml'
+
+            # Write test content to all files
+            for f in [aliases_file, stats_file, file_mtimes, last_check, config_file]:
+                f.write_text('test content')
+                assert f.exists()
+
+            # Call cleanup method
+            installer._clean_fastparrot_data()
+
+            # Verify files to be removed are gone
+            assert not aliases_file.exists()
+            assert not stats_file.exists()
+            assert not file_mtimes.exists()
+            assert not last_check.exists()
+
+            # Verify config file is preserved
+            assert config_file.exists()
+            assert config_file.read_text() == 'test content'
+
+    def test_uninstall_calls_cleanup(self, mock_home_dir):
+        """Test that uninstall method calls cleanup."""
+        from fastparrot.core.installer import Installer
+
+        installer = Installer()
+
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            with patch.object(installer, '_clean_fastparrot_data') as mock_cleanup:
+                # Create a bashrc file to uninstall from
+                bashrc = mock_home_dir / '.bashrc'
+                bashrc.write_text('# FastParrot integration\ntest\n# End FastParrot integration\n')
+
+                installer.uninstall('bash')
+
+                # Verify cleanup was called
+                mock_cleanup.assert_called_once()
+
+    def test_install_force_calls_cleanup(self, mock_home_dir):
+        """Test that install with force calls cleanup."""
+        from fastparrot.core.installer import Installer
+
+        installer = Installer()
+
+        with patch.object(Path, 'home', return_value=mock_home_dir):
+            with patch.object(installer, '_clean_fastparrot_data') as mock_cleanup:
+                with patch('fastparrot.core.fastparrotrc.FastParrotRC'):
+                    # Create a bashrc file
+                    bashrc = mock_home_dir / '.bashrc'
+                    bashrc.write_text('# Some existing content\n')
+
+                    # Install with force=True should call cleanup
+                    installer.install('bash', force=True)
+
+                    # Verify cleanup was called
+                    mock_cleanup.assert_called_once()
