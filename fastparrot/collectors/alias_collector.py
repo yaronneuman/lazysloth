@@ -196,14 +196,51 @@ class AliasCollector:
 
         # First, expand any aliases in the command recursively
         expanded_command = self._expand_aliases_in_command(command, aliases)
-
         # Then find the most specific alias for the expanded command
-        return self._find_most_specific_alias(expanded_command, aliases)
+        alias = self._find_most_specific_alias(expanded_command, self._expand_aliases(aliases))
+        return alias
 
-    def _expand_aliases_in_command(self, command: str, aliases: Dict[str, Dict], max_depth: int = 10) -> str:
-        """Recursively expand aliases in a command to get the full form."""
+
+    def _expand_aliases(self, aliases: Dict[str, Dict], max_depth: int = 10) -> Dict[str, Dict]:
+        """Recursively expand aliases commands to full form."""
+        expanded_aliases_map = {}
+        for alias_name, alias_data in aliases.items():
+            current_command = alias_data.get('command', '')
+            if not current_command:
+                expanded_aliases_map[alias_name] = alias_data
+                continue
+
+            history = {alias_name}
+            depth = 0
+            while depth < max_depth:
+                parts = current_command.split()
+                if not parts:
+                    break
+
+                first_part = parts[0]
+                if first_part in aliases and first_part not in history:
+                    history.add(first_part)
+                    aliased_command = aliases[first_part].get('command', '')
+                    if aliased_command:
+                        current_command = f"{aliased_command} {' '.join(parts[1:])}".strip()
+                    else:
+                        break # Alias points to nothing
+                else:
+                    break # No more aliases to expand or circular reference detected
+                depth += 1
+
+            expanded_aliases_map[alias_name] = {**alias_data, 'command': current_command}
+        return expanded_aliases_map
+
+
+    def _expand_aliases_in_command(self, command: str, aliases: Dict[str, Dict], max_depth: int = 10,
+                                   expanded_aliases: set = None) -> str:
+        """Recursively expand aliases in a command to get the full form, tracking already expanded aliases."""
         if max_depth <= 0:
             return command  # Prevent infinite recursion
+
+        if expanded_aliases is None:
+            expanded_aliases = set()
 
         parts = command.split()
         if not parts:
@@ -212,10 +249,13 @@ class AliasCollector:
         first_part = parts[0]
         rest_parts = parts[1:] if len(parts) > 1 else []
 
-        # Check if the first part is an alias
-        if first_part in aliases:
+        # Check if the first part is an alias and hasn't been expanded yet
+        if first_part in aliases and first_part not in expanded_aliases:
             alias_command = aliases[first_part].get('command', '')
             if alias_command:
+                # Add this alias to the set of expanded aliases
+                expanded_aliases.add(first_part)
+
                 # Replace the first part with the alias command
                 if rest_parts:
                     expanded = f"{alias_command} {' '.join(rest_parts)}"
@@ -223,29 +263,23 @@ class AliasCollector:
                     expanded = alias_command
 
                 # Recursively expand in case the alias command contains more aliases
-                return self._expand_aliases_in_command(expanded, aliases, max_depth - 1)
+                return self._expand_aliases_in_command(expanded, aliases, max_depth - 1, expanded_aliases)
 
         return command
 
     def _find_most_specific_alias(self, command: str, aliases: Dict[str, Dict]) -> Optional[Tuple[str, Dict]]:
         """Find the most specific alias that matches the given command."""
         matches = []
-
         # Find all matching aliases
         for alias_name, alias_data in aliases.items():
             alias_command = alias_data.get('command', '')
 
-            # Exact match
-            if alias_command == command:
-                matches.append((alias_name, alias_data, len(alias_command)))
-
             # Check if command starts with alias command (for commands with arguments)
-            elif command.startswith(alias_command + ' '):
+            if alias_command == command or command.startswith(alias_command + ' '):
                 matches.append((alias_name, alias_data, len(alias_command)))
 
         if not matches:
             return None
-
         # Sort by length of alias command (descending) to prefer more specific aliases
         # For example: "git commit -m" (length 13) over "git" (length 3)
         matches.sort(key=lambda x: x[2], reverse=True)

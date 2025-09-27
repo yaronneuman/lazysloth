@@ -100,11 +100,8 @@ class CommandMonitor:
             if first_part not in aliases:
                 return False  # Not using an alias at all
 
-            # Expand the command to see what it would become without aliases
-            expanded_command = self.collector._expand_aliases_in_command(command, aliases)
-
             # Find what the optimal alias would be for the expanded command
-            optimal_alias = self.collector.find_alias_for_command(expanded_command)
+            optimal_alias = self.collector.find_alias_for_command(command)
 
             if not optimal_alias:
                 return True  # No better alias exists
