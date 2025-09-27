@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
-from fastparrot.monitors.command_monitor import CommandMonitor, MonitorAction, MonitorResult
+from lazysloth.monitors.command_monitor import CommandMonitor, MonitorAction, MonitorResult
 
 
 @pytest.mark.unit
@@ -15,8 +15,8 @@ class TestCommandMonitor:
 
     def test_init(self, isolated_config):
         """Test CommandMonitor initialization."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 mock_collector.return_value = MagicMock()
 
@@ -25,8 +25,8 @@ class TestCommandMonitor:
 
     def test_record_command_disabled_monitoring(self, isolated_config):
         """Test that monitoring can be disabled."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': False
@@ -39,8 +39,8 @@ class TestCommandMonitor:
 
     def test_record_command_ignored_command(self, isolated_config):
         """Test that ignored commands are not monitored."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,
@@ -54,8 +54,8 @@ class TestCommandMonitor:
 
     def test_record_command_no_alias(self, isolated_config):
         """Test recording command that has no alias."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,
@@ -73,8 +73,8 @@ class TestCommandMonitor:
 
     def test_record_command_first_time(self, isolated_config, mock_datetime):
         """Test recording a command for the first time."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,
@@ -113,8 +113,8 @@ class TestCommandMonitor:
             }
         }
 
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,
@@ -152,8 +152,8 @@ class TestCommandMonitor:
             }
         }
 
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,
@@ -182,8 +182,8 @@ class TestCommandMonitor:
 
     def test_generate_alias_suggestion_exact_match(self, isolated_config):
         """Test alias suggestion generation for exact match."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector'):
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector'):
                 mock_config.return_value = isolated_config
 
                 monitor = CommandMonitor()
@@ -194,8 +194,8 @@ class TestCommandMonitor:
 
     def test_generate_alias_suggestion_with_args(self, isolated_config):
         """Test alias suggestion generation for command with arguments."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector'):
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector'):
                 mock_config.return_value = isolated_config
 
                 monitor = CommandMonitor()
@@ -206,8 +206,8 @@ class TestCommandMonitor:
 
     def test_get_command_stats(self, isolated_config, command_stats_sample):
         """Test getting command statistics."""
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector'):
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector'):
                 mock_config.return_value = isolated_config
                 isolated_config.get_stats_data = MagicMock(return_value=command_stats_sample)
 
@@ -227,8 +227,8 @@ class TestCommandMonitor:
             }
         }
 
-        with patch('fastparrot.monitors.command_monitor.Config') as mock_config:
-            with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector:
+        with patch('lazysloth.monitors.command_monitor.Config') as mock_config:
+            with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitoring.enabled': True,

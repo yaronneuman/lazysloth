@@ -111,7 +111,7 @@ pip install -e .[test]
 pytest tests/
 
 # Run with coverage
-pytest tests/ --cov=fastparrot --cov-report=term-missing
+pytest tests/ --cov=lazysloth --cov-report=term-missing
 
 # Run specific test files
 pytest tests/unit/test_config.py -v
@@ -166,7 +166,7 @@ def test_example(test_environment):
 
 ```python
 import pytest
-from fastparrot.core.config import Config
+from lazysloth.core.config import Config
 
 @pytest.mark.unit
 class TestNewFeature:

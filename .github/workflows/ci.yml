@@ -30,21 +30,21 @@ jobs:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 fastparrot tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 lazysloth tests --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 fastparrot tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 lazysloth tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Check code formatting with black
       run: |
-        black --check fastparrot tests
+        black --check lazysloth tests
 
     - name: Check import sorting with isort
       run: |
-        isort --check-only fastparrot tests
+        isort --check-only lazysloth tests
 
     - name: Run unit tests
       run: |
-        pytest tests/unit -v --cov=fastparrot --cov-report=xml
+        pytest tests/unit -v --cov=lazysloth --cov-report=xml
 
     - name: Run integration tests
       run: |
@@ -75,19 +75,19 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 fastparrot tests --max-line-length=100
+        flake8 lazysloth tests --max-line-length=100
 
     - name: Check formatting with black
       run: |
-        black --check fastparrot tests
+        black --check lazysloth tests
 
     - name: Check import sorting with isort
       run: |
-        isort --check-only fastparrot tests
+        isort --check-only lazysloth tests
 
     - name: Type check with mypy (optional, may fail)
       run: |
-        mypy fastparrot --ignore-missing-imports || true
+        mypy lazysloth --ignore-missing-imports || true
 
   security:
     runs-on: ubuntu-latest
@@ -106,7 +106,7 @@ jobs:
 
     - name: Run security checks with bandit
       run: |
-        bandit -r fastparrot/
+        bandit -r lazysloth/
 
     - name: Check dependencies with safety
       run: |

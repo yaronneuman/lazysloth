@@ -1,14 +1,14 @@
-# FastParrot Makefile
+# LazySloth Makefile
 
 .PHONY: help install test test-unit test-integration lint format clean coverage docs
 
 help:  ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install:  ## Install FastParrot in development mode
+install:  ## Install LazySloth in development mode
 	pip install -e .
 
-install-dev:  ## Install FastParrot with development dependencies
+install-dev:  ## Install LazySloth with development dependencies
 	pip install -e .[test]
 
 test:  ## Run all tests
@@ -30,15 +30,15 @@ lint:  ## Run code linting
 	python tests/test_runner.py lint
 
 format:  ## Format code with black and isort
-	black fastparrot tests
-	isort fastparrot tests
+	black lazysloth tests
+	isort lazysloth tests
 
 format-check:  ## Check code formatting
-	black --check fastparrot tests
-	isort --check-only fastparrot tests
+	black --check lazysloth tests
+	isort --check-only lazysloth tests
 
 coverage:  ## Generate coverage report
-	pytest tests --cov=fastparrot --cov-report=html --cov-report=term-missing
+	pytest tests --cov=lazysloth --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/"
 
 clean:  ## Clean up build artifacts
@@ -58,7 +58,7 @@ install-from-source:  ## Install from source (for testing)
 	pip install .
 
 uninstall:  ## Uninstall FastParrot
-	pip uninstall fastparrot -y
+	pip uninstall lazysloth -y
 
 reinstall: uninstall install  ## Reinstall FastParrot
 
@@ -80,7 +80,7 @@ watch-test:  ## Run tests in watch mode (requires pytest-watch)
 
 # Release helpers
 version:  ## Show current version
-	python -c "from fastparrot import __version__; print(__version__)"
+	python -c "from lazysloth import __version__; print(__version__)"
 
 # Documentation (if added later)
 docs:  ## Generate documentation
@@ -89,8 +89,8 @@ docs:  ## Generate documentation
 # Shell integration testing
 test-shell-integration:  ## Test shell integration (manual)
 	@echo "Manual shell integration testing:"
-	@echo "1. Run 'fastparrot install'"
+	@echo "1. Run 'sloth install'"
 	@echo "2. Restart your shell"
-	@echo "3. Run 'fastparrot collect'"
+	@echo "3. Run 'sloth collect'"
 	@echo "4. Test some commands that have aliases"
-	@echo "5. Run 'fastparrot status' to see statistics"
+	@echo "5. Run 'sloth status' to see statistics"

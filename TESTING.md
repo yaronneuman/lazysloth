@@ -99,7 +99,7 @@ def test_config_isolation(isolated_config, tmp_path):
     config.set('monitoring.enabled', False)
 
     # Changes are saved to test directory only
-    assert config.config_dir == tmp_path / "fastparrot_test_config"
+    assert config.config_dir == tmp_path / "lazysloth_test_config"
     # User's real config is unaffected
 ```
 
@@ -215,7 +215,7 @@ Tests run automatically on:
 ```python
 import pytest
 from unittest.mock import patch
-from fastparrot.component import Component
+from lazysloth.component import Component
 
 @pytest.mark.unit
 class TestComponent:
@@ -230,7 +230,7 @@ class TestComponent:
 ```python
 import pytest
 from click.testing import CliRunner
-from fastparrot.cli import command
+from lazysloth.cli import command
 
 @pytest.mark.integration
 class TestCLICommand:

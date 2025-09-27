@@ -10,7 +10,7 @@ from .core.auto_learner import AutoLearner
 @click.group()
 @click.version_option()
 def main():
-    """FastParrot: Learn and share terminal shortcuts and aliases.
+    """LazySloth: Learn and share terminal shortcuts and aliases.
 
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⠖⢶⣦⣄⡀⠀⢀⣴⣶⠟⠓⣶⣦⣄⡀⠀⠀⠀⠀⠀⣀⣤⣤⣀⡀⠀⠀⢠⣤⣤⣄⡀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⣿⡄⠀⣿⠈⢻⣤⣾⠏⠀⠀⠀⠈⢷⡈⠻⣦⡀⠀⣠⣾⠟⠋⠀⠙⣿⣶⣴⠏⢠⣿⠋⠉⣷⡄⠀⠀⠀
@@ -41,7 +41,7 @@ def main():
 @click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Target shell')
 @click.option('--force', is_flag=True, help='Force reinstallation')
 def install(shell, force):
-    """Install FastParrot shell integration."""
+    """Install LazySloth shell integration."""
     installer = Installer()
 
     if not shell:
@@ -50,10 +50,10 @@ def install(shell, force):
 
     try:
         if force:
-            click.echo("🧹 Cleaning previous FastParrot data (aliases, stats, file tracking)...")
+            click.echo("🧹 Cleaning previous LazySloth data (aliases, stats, file tracking)...")
 
         installer.install(shell, force=force)
-        click.echo(f"✅ FastParrot installed for {shell}")
+        click.echo(f"✅ LazySloth installed for {shell}")
 
         # Automatically learn aliases from the detected shell
         learner = AutoLearner()
@@ -74,7 +74,7 @@ def install(shell, force):
 @main.command()
 @click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Target shell')
 def uninstall(shell):
-    """Uninstall FastParrot shell integration."""
+    """Uninstall LazySloth shell integration."""
     installer = Installer()
 
     if not shell:
@@ -82,11 +82,11 @@ def uninstall(shell):
         click.echo(f"Detected shell: {shell}")
 
     try:
-        click.echo("🧹 Removing FastParrot integration and cleaning data (aliases, stats, file tracking)...")
+        click.echo("🧹 Removing LazySloth integration and cleaning data (aliases, stats, file tracking)...")
         installer.uninstall(shell)
-        click.echo(f"✅ FastParrot uninstalled from {shell}")
-        click.echo("💡 Configuration settings preserved in ~/.config/fastparrot/config.yaml")
-        click.echo("💡 User aliases preserved in ~/.fastparrotrc (will not be used until reinstalled)")
+        click.echo(f"✅ LazySloth uninstalled from {shell}")
+        click.echo("💡 Configuration settings preserved in ~/.config/lazysloth/config.yaml")
+        click.echo("💡 User aliases preserved in ~/.slothrc (will not be used until reinstalled)")
         click.echo("Restart your shell or run 'source ~/.bashrc' (or equivalent) to deactivate.")
     except Exception as e:
         click.echo(f"❌ Uninstallation failed: {e}", err=True)
@@ -96,9 +96,9 @@ def uninstall(shell):
 @click.argument('alias_name', required=True)
 @click.argument('command', required=True)
 def add(alias_name, command):
-    """Add a new alias. Usage: fastparrot add <alias> "command"
+    """Add a new alias. Usage: sloth add <alias> "command"
 
-    Example: fastparrot add gs "git status --porcelain"
+    Example: sloth add gs "git status --porcelain"
     """
     if not alias_name or not command:
         click.echo("❌ Both alias name and command are required", err=True)
@@ -107,7 +107,7 @@ def add(alias_name, command):
     try:
         config = Config()
 
-        # Check if alias already exists in FastParrot's database
+        # Check if alias already exists in LazySloth's database
         aliases = config.get_aliases_data()
         if alias_name in aliases:
             existing_command = aliases[alias_name].get('command', '')
@@ -120,22 +120,22 @@ def add(alias_name, command):
                     click.echo("Operation cancelled")
                     return
 
-        # Add the new alias to FastParrot's database
+        # Add the new alias to LazySloth's database
         aliases[alias_name] = {
             'command': command,
             'shell': 'user_defined',
-            'source_file': '.fastparrotrc',
+            'source_file': '.slothrc',
             'type': 'alias'
         }
         config.save_aliases_data(aliases)
 
-        # Add the alias to .fastparrotrc file
-        from .core.fastparrotrc import FastParrotRC
-        fastparrotrc = FastParrotRC()
-        fastparrotrc.add_alias(alias_name, command)
+        # Add the alias to .slothrc file
+        from .core.slothrc import SlothRC
+        slothrc = SlothRC()
+        slothrc.add_alias(alias_name, command)
 
         click.echo(f"✅ Added alias: {alias_name} -> {command}")
-        click.echo(f"💡 Alias added to ~/.fastparrotrc and will be available in new shell sessions")
+        click.echo(f"💡 Alias added to ~/.slothrc and will be available in new shell sessions")
 
     except Exception as e:
         click.echo(f"❌ Failed to add alias: {e}", err=True)
@@ -268,11 +268,11 @@ def files(shell, add, remove):
 
 @main.command()
 def status():
-    """Show FastParrot status and configuration."""
+    """Show LazySloth status and configuration."""
     config = Config()
     learner = AutoLearner()
 
-    click.echo("FastParrot Status:")
+    click.echo("LazySloth Status:")
     click.echo(f"  Version: {config.get('version', '1.0.0')}")
     click.echo(f"  Config dir: {config.config_dir}")
 

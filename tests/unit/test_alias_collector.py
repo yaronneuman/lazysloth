@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from fastparrot.collectors.alias_collector import AliasCollector
+from lazysloth.collectors.alias_collector import AliasCollector
 
 
 @pytest.mark.unit
@@ -17,7 +17,7 @@ class TestAliasCollector:
 
     def test_init(self, isolated_config):
         """Test AliasCollector initialization."""
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
             collector = AliasCollector()
             assert collector.config == isolated_config
@@ -140,7 +140,7 @@ class TestAliasCollector:
 
     def test_find_alias_for_command_exact_match(self, isolated_config, sample_aliases):
         """Test finding alias for exact command match."""
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
             isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
 
@@ -155,7 +155,7 @@ class TestAliasCollector:
 
     def test_find_alias_for_command_with_arguments(self, isolated_config, sample_aliases):
         """Test finding alias for command with additional arguments."""
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
             isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
 
@@ -170,7 +170,7 @@ class TestAliasCollector:
 
     def test_find_alias_for_command_no_match(self, isolated_config, sample_aliases):
         """Test finding alias for command with no matches."""
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
             isolated_config.get_aliases_data = MagicMock(return_value=sample_aliases)
 
@@ -197,7 +197,7 @@ class TestAliasCollector:
             }
         }
 
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
             isolated_config.get_aliases_data = MagicMock(return_value=aliases_with_specificity)
 
@@ -212,7 +212,7 @@ class TestAliasCollector:
     def test_collect_all_saves_data(self, isolated_config, mock_home_dir, sample_shell_configs):
         """Test that collect_all saves data to config."""
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+            with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
                 mock_config.return_value = isolated_config
                 isolated_config.save_aliases_data = MagicMock()
 
@@ -413,7 +413,7 @@ alias edge1='echo test'
  # alias edge3='echo test3'
 """
 
-        with patch('fastparrot.collectors.alias_collector.Config') as mock_config:
+        with patch('lazysloth.collectors.alias_collector.Config') as mock_config:
             mock_config.return_value = isolated_config
 
             collector = AliasCollector()

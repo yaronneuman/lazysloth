@@ -49,7 +49,7 @@ def run_tests(test_type=None, verbose=False, coverage=False, markers=None):
         cmd_parts.append("-v")
 
     if coverage:
-        cmd_parts.extend(["--cov=fastparrot", "--cov-report=term-missing"])
+        cmd_parts.extend(["--cov=lazysloth", "--cov-report=term-missing"])
 
     if markers:
         for marker in markers:
@@ -87,9 +87,9 @@ def install_test_deps():
 def lint_code():
     """Run code linting."""
     commands = [
-        "python -m flake8 fastparrot tests --max-line-length=100 --ignore=E501,W503",
-        "python -m black --check fastparrot tests",
-        "python -m isort --check-only fastparrot tests"
+        "python -m flake8 lazysloth tests --max-line-length=100 --ignore=E501,W503",
+        "python -m black --check lazysloth tests",
+        "python -m isort --check-only lazysloth tests"
     ]
 
     all_passed = True

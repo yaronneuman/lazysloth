@@ -203,8 +203,8 @@ function mkcd --description 'Create directory and change to it'
 end
 """
 
-# Configuration with FastParrot already installed
-BASH_WITH_FASTPARROT = """
+# Configuration with LazySloth already installed
+BASH_WITH_LAZYSLOTH = """
 # Sample .bashrc configuration
 export PATH=$HOME/bin:$PATH
 
@@ -212,25 +212,25 @@ export PATH=$HOME/bin:$PATH
 alias ll='ls -la'
 alias gs='git status'
 
-# FastParrot integration
-fastparrot_preexec() {
+# LazySloth integration
+lazysloth_preexec() {
     if [ -n "${BASH_COMMAND}" ]; then
-        /usr/bin/python3 -m fastparrot.monitors.hook "${BASH_COMMAND}" 2>/dev/null || true
+        /usr/bin/python3 -m lazysloth.monitors.hook "${BASH_COMMAND}" 2>/dev/null || true
     fi
 }
-trap 'fastparrot_preexec' DEBUG
-# End FastParrot integration
+trap 'lazysloth_preexec' DEBUG
+# End LazySloth integration
 """
 
-ZSH_WITH_FASTPARROT = """
+ZSH_WITH_LAZYSLOTH = """
 # Sample .zshrc configuration
 export ZSH="$HOME/.oh-my-zsh"
 
 alias gs="git status"
 alias ll="ls -la"
 
-# FastParrot integration
-fastparrot_widget() {
+# LazySloth integration
+lazysloth_widget() {
     local cmd_line="$BUFFER"
 
     if [[ -z "$cmd_line" || "$cmd_line" =~ '^[[:space:]]*$' ]]; then
@@ -238,12 +238,12 @@ fastparrot_widget() {
         return
     fi
 
-    if [[ "$cmd_line" =~ '^[[:space:]]*fastparrot' ]]; then
+    if [[ "$cmd_line" =~ '^[[:space:]]*lazysloth' ]]; then
         zle .accept-line
         return
     fi
 
-    /usr/bin/python3 -m fastparrot.monitors.hook "$cmd_line"
+    /usr/bin/python3 -m lazysloth.monitors.hook "$cmd_line"
     local exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
@@ -254,10 +254,10 @@ fastparrot_widget() {
     fi
 }
 
-zle -N fastparrot_widget
-bindkey "^M" fastparrot_widget
-bindkey "^J" fastparrot_widget
-# End FastParrot integration
+zle -N lazysloth_widget
+bindkey "^M" lazysloth_widget
+bindkey "^J" lazysloth_widget
+# End LazySloth integration
 """
 
 # Sample aliases data for testing

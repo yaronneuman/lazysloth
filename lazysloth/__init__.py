@@ -1,5 +1,5 @@
 """
-ShellSloth: CLI-first application for sharing and learning terminal shortcuts and aliases.
+LazySloth: CLI-first application for sharing and learning terminal shortcuts and aliases.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published

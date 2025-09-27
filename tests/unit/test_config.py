@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path
 from unittest.mock import patch, mock_open
 
-from fastparrot.core.config import Config
+from lazysloth.core.config import Config
 
 
 @pytest.mark.unit

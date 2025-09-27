@@ -1,5 +1,5 @@
 """
-Integration tests for the FastParrot CLI.
+Integration tests for the LazySloth CLI.
 """
 
 import pytest
@@ -8,7 +8,7 @@ from pathlib import Path
 from click.testing import CliRunner
 from unittest.mock import patch, MagicMock
 
-from fastparrot.cli import main, install, uninstall, monitor, status, add
+from lazysloth.cli import main, install, uninstall, monitor, status, add
 
 
 @pytest.mark.integration
@@ -21,7 +21,7 @@ class TestCLI:
         result = runner.invoke(main, ['--help'])
 
         assert result.exit_code == 0
-        assert 'FastParrot: Learn and share terminal shortcuts and aliases' in result.output
+        assert 'LazySloth: Learn and share terminal shortcuts and aliases' in result.output
 
     def test_main_command_version(self):
         """Test that version flag works."""
@@ -31,7 +31,7 @@ class TestCLI:
         assert result.exit_code == 0
         # Version should be displayed
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_install_command_auto_detect(self, mock_installer_class):
         """Test install command with auto-detected shell."""
         mock_installer = MagicMock()
@@ -43,10 +43,10 @@ class TestCLI:
 
         assert result.exit_code == 0
         assert 'Detected shell: zsh' in result.output
-        assert '✅ FastParrot installed for zsh' in result.output
+        assert '✅ LazySloth installed for zsh' in result.output
         mock_installer.install.assert_called_once_with('zsh', force=False)
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_install_command_specified_shell(self, mock_installer_class):
         """Test install command with specified shell."""
         mock_installer = MagicMock()
@@ -56,10 +56,10 @@ class TestCLI:
         result = runner.invoke(install, ['--shell', 'bash'])
 
         assert result.exit_code == 0
-        assert '✅ FastParrot installed for bash' in result.output
+        assert '✅ LazySloth installed for bash' in result.output
         mock_installer.install.assert_called_once_with('bash', force=False)
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_install_command_force_flag(self, mock_installer_class):
         """Test install command with force flag."""
         mock_installer = MagicMock()
@@ -72,7 +72,7 @@ class TestCLI:
         assert result.exit_code == 0
         mock_installer.install.assert_called_once_with('bash', force=True)
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_install_command_failure(self, mock_installer_class):
         """Test install command when installation fails."""
         mock_installer = MagicMock()
@@ -86,7 +86,7 @@ class TestCLI:
         assert result.exit_code == 1
         assert '❌ Installation failed: Installation failed' in result.output
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_uninstall_command(self, mock_installer_class):
         """Test uninstall command."""
         mock_installer = MagicMock()
@@ -98,10 +98,10 @@ class TestCLI:
 
         assert result.exit_code == 0
         assert 'Detected shell: zsh' in result.output
-        assert '✅ FastParrot uninstalled from zsh' in result.output
+        assert '✅ LazySloth uninstalled from zsh' in result.output
         mock_installer.uninstall.assert_called_once_with('zsh')
 
-    @patch('fastparrot.cli.Installer')
+    @patch('lazysloth.cli.Installer')
     def test_uninstall_command_failure(self, mock_installer_class):
         """Test uninstall command when uninstallation fails."""
         mock_installer = MagicMock()
@@ -116,7 +116,7 @@ class TestCLI:
         assert '❌ Uninstallation failed: Uninstall failed' in result.output
 
 
-    @patch('fastparrot.cli.Config')
+    @patch('lazysloth.cli.Config')
     def test_monitor_config_command_enable(self, mock_config_class):
         """Test monitor config command enabling monitoring."""
         mock_config = MagicMock()
@@ -129,7 +129,7 @@ class TestCLI:
         assert 'Command monitoring enabled' in result.output
         mock_config.set.assert_called_with('monitoring.enabled', True)
 
-    @patch('fastparrot.cli.Config')
+    @patch('lazysloth.cli.Config')
     def test_monitor_config_command_disable(self, mock_config_class):
         """Test monitor config command disabling monitoring."""
         mock_config = MagicMock()
@@ -142,7 +142,7 @@ class TestCLI:
         assert 'Command monitoring disabled' in result.output
         mock_config.set.assert_called_with('monitoring.enabled', False)
 
-    @patch('fastparrot.cli.Config')
+    @patch('lazysloth.cli.Config')
     def test_monitor_config_command_thresholds(self, mock_config_class):
         """Test monitor config command setting thresholds."""
         mock_config = MagicMock()
@@ -158,7 +158,7 @@ class TestCLI:
         assert 'Notice threshold set to 2' in result.output
         assert 'Block threshold set to 5' in result.output
 
-    @patch('fastparrot.cli.Config')
+    @patch('lazysloth.cli.Config')
     def test_monitor_config_command_enable_blocking(self, mock_config_class):
         """Test monitor config command enabling blocking with warning."""
         mock_config = MagicMock()
@@ -171,7 +171,7 @@ class TestCLI:
         assert 'Monitoring action set to: block' in result.output
         assert 'Warning: Commands will be blocked' in result.output
 
-    @patch('fastparrot.cli.Config')
+    @patch('lazysloth.cli.Config')
     def test_monitor_config_command_disable_blocking(self, mock_config_class):
         """Test monitor config command disabling blocking."""
         mock_config = MagicMock()
@@ -183,40 +183,40 @@ class TestCLI:
         assert result.exit_code == 0
         assert 'Monitoring action set to: notice' in result.output
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
-    def test_add_command_success(self, mock_fastparrotrc_class, mock_config_class):
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_add_command_success(self, mock_slothrc_class, mock_config_class):
         """Test add command successful execution."""
         # Mock config
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {}  # No existing aliases
         mock_config_class.return_value = mock_config
 
-        # Mock FastParrotRC
-        mock_fastparrotrc = MagicMock()
-        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+        # Mock SlothRC
+        mock_slothrc = MagicMock()
+        mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
         result = runner.invoke(add, ['gs', 'git status'])
 
         assert result.exit_code == 0
         assert '✅ Added alias: gs -> git status' in result.output
-        assert 'Alias added to ~/.fastparrotrc' in result.output
+        assert 'Alias added to ~/.slothrc' in result.output
         mock_config.save_aliases_data.assert_called_once()
-        mock_fastparrotrc.add_alias.assert_called_once_with('gs', 'git status')
+        mock_slothrc.add_alias.assert_called_once_with('gs', 'git status')
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
-    def test_add_command_with_complex_command(self, mock_fastparrotrc_class, mock_config_class):
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_add_command_with_complex_command(self, mock_slothrc_class, mock_config_class):
         """Test add command with complex multi-word command."""
         # Mock config
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {}
         mock_config_class.return_value = mock_config
 
-        # Mock FastParrotRC
-        mock_fastparrotrc = MagicMock()
-        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+        # Mock SlothRC
+        mock_slothrc = MagicMock()
+        mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
         result = runner.invoke(add, ['ll', 'ls -la --color=auto --human-readable'])
@@ -224,9 +224,9 @@ class TestCLI:
         assert result.exit_code == 0
         assert '✅ Added alias: ll -> ls -la --color=auto --human-readable' in result.output
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
-    def test_add_command_overwrite_existing(self, mock_fastparrotrc_class, mock_config_class):
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_add_command_overwrite_existing(self, mock_slothrc_class, mock_config_class):
         """Test add command when alias already exists."""
         # Mock config with existing alias
         mock_config = MagicMock()
@@ -235,9 +235,9 @@ class TestCLI:
         }
         mock_config_class.return_value = mock_config
 
-        # Mock FastParrotRC
-        mock_fastparrotrc = MagicMock()
-        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+        # Mock SlothRC
+        mock_slothrc = MagicMock()
+        mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
         # Test overwriting with same command
@@ -246,9 +246,9 @@ class TestCLI:
         assert result.exit_code == 0
         assert '✅ Alias \'gs\' already exists with the same command' in result.output
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.core.fastparrotrc.FastParrotRC')
-    def test_add_command_overwrite_different(self, mock_fastparrotrc_class, mock_config_class):
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_add_command_overwrite_different(self, mock_slothrc_class, mock_config_class):
         """Test add command when alias exists with different command."""
         # Mock config with existing alias
         mock_config = MagicMock()
@@ -257,9 +257,9 @@ class TestCLI:
         }
         mock_config_class.return_value = mock_config
 
-        # Mock FastParrotRC
-        mock_fastparrotrc = MagicMock()
-        mock_fastparrotrc_class.return_value = mock_fastparrotrc
+        # Mock SlothRC
+        mock_slothrc = MagicMock()
+        mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
         # Test overwriting with different command - answer 'no'
@@ -281,9 +281,9 @@ class TestCLI:
         assert result.exit_code == 1
         assert '❌ Both alias name and command are required' in result.output
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.cli.AutoLearner')
-    @patch('fastparrot.monitors.command_monitor.CommandMonitor')
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.cli.AutoLearner')
+    @patch('lazysloth.monitors.command_monitor.CommandMonitor')
     def test_status_command_full(self, mock_monitor_class, mock_learner_class, mock_config_class):
         """Test status command showing full status."""
         # Mock config
@@ -295,7 +295,7 @@ class TestCLI:
             'monitoring.blocking_threshold': 5,
             'monitoring.blocking_enabled': True
         }.get(key, default)
-        mock_config.config_dir = Path('/home/user/.config/fastparrot')
+        mock_config.config_dir = Path('/home/user/.config/lazysloth')
         mock_config_class.return_value = mock_config
 
         # Mock learner
@@ -322,7 +322,7 @@ class TestCLI:
         result = runner.invoke(status)
 
         assert result.exit_code == 0
-        assert 'FastParrot Status:' in result.output
+        assert 'LazySloth Status:' in result.output
         assert 'Version: 1.0.0' in result.output
         assert 'Monitoring enabled: True' in result.output
         assert 'Action: block' in result.output
@@ -332,9 +332,9 @@ class TestCLI:
         assert 'Monitored files: 2' in result.output
         assert 'Tracked aliases: 2' in result.output
 
-    @patch('fastparrot.cli.Config')
-    @patch('fastparrot.cli.AutoLearner')
-    @patch('fastparrot.monitors.command_monitor.CommandMonitor')
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.cli.AutoLearner')
+    @patch('lazysloth.monitors.command_monitor.CommandMonitor')
     def test_status_command_disabled_monitoring(self, mock_monitor_class, mock_learner_class, mock_config_class):
         """Test status command when monitoring is disabled."""
         # Mock config with monitoring disabled
@@ -346,7 +346,7 @@ class TestCLI:
             'monitoring.blocking_threshold': 3,
             'monitoring.blocking_enabled': False
         }.get(key, default)
-        mock_config.config_dir = Path('/home/user/.config/fastparrot')
+        mock_config.config_dir = Path('/home/user/.config/lazysloth')
         mock_config_class.return_value = mock_config
 
         # Mock learner
@@ -383,7 +383,7 @@ class TestCLIWithRealFiles:
                 with patch('shutil.which', return_value='/usr/bin/python3'):
                     runner = CliRunner()
 
-                    # Install FastParrot
+                    # Install LazySloth
                     result = runner.invoke(install, ['--shell', 'bash'])
                     assert result.exit_code == 0
 
@@ -391,15 +391,15 @@ class TestCLIWithRealFiles:
                     bashrc = home_dir / '.bashrc'
                     assert bashrc.exists()
                     content = bashrc.read_text()
-                    assert '# FastParrot integration' in content
-                    assert 'fastparrot_preexec()' in content
+                    assert '# LazySloth integration' in content
+                    assert 'lazysloth_preexec()' in content
 
-                    # Uninstall FastParrot
+                    # Uninstall LazySloth
                     result = runner.invoke(uninstall, ['--shell', 'bash'])
                     assert result.exit_code == 0
 
                     # Verify integration was removed
                     content = bashrc.read_text()
-                    assert '# FastParrot integration' not in content
-                    assert 'fastparrot_preexec()' not in content
+                    assert '# LazySloth integration' not in content
+                    assert 'lazysloth_preexec()' not in content
 

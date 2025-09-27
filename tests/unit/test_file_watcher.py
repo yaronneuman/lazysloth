@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from fastparrot.core.file_watcher import FileWatcher
+from lazysloth.core.file_watcher import FileWatcher
 
 
 @pytest.mark.unit
@@ -18,8 +18,8 @@ class TestFileWatcher:
 
     def test_init(self):
         """Test FileWatcher initialization."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 watcher = FileWatcher()
 
                 assert watcher.config is not None
@@ -29,8 +29,8 @@ class TestFileWatcher:
 
     def test_get_changed_files_new_file(self, isolated_config):
         """Test detecting new files as changed."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
 
                 # Create temporary file
@@ -54,8 +54,8 @@ class TestFileWatcher:
 
     def test_get_changed_files_modified_file(self, isolated_config):
         """Test detecting modified files."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
 
                 # Create temporary file
@@ -83,8 +83,8 @@ class TestFileWatcher:
 
     def test_get_changed_files_unchanged_file(self, isolated_config):
         """Test that unchanged files are not detected."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
 
                 # Create temporary file
@@ -111,8 +111,8 @@ class TestFileWatcher:
 
     def test_check_and_relearn_if_needed_no_files(self, isolated_config):
         """Test behavior when no monitored files configured."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={})
 
@@ -123,8 +123,8 @@ class TestFileWatcher:
 
     def test_check_and_relearn_if_needed_with_changes(self, isolated_config):
         """Test relearning when files have changed."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'bash': ['/fake/bashrc'],
@@ -150,8 +150,8 @@ class TestFileWatcher:
 
     def test_check_and_relearn_if_needed_no_changes(self, isolated_config):
         """Test no relearning when files haven't changed."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'bash': ['/fake/bashrc']
@@ -171,8 +171,8 @@ class TestFileWatcher:
 
     def test_force_relearn_all(self, isolated_config):
         """Test force relearning all aliases."""
-        with patch('fastparrot.core.file_watcher.Config') as mock_config:
-            with patch('fastparrot.core.file_watcher.AutoLearner') as mock_learner:
+        with patch('lazysloth.core.file_watcher.Config') as mock_config:
+            with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
 
                 mock_learner_instance = MagicMock()

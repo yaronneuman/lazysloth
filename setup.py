@@ -6,14 +6,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="fastparrot",
+    name="lazysloth",
     version="1.0.0",
     author="Yaron Neuman",
     author_email="",
     description="CLI-first application for sharing and learning terminal shortcuts and aliases",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yaronneuman/fastparrot",
+    url="https://github.com/yaronneuman/lazysloth",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -36,11 +36,11 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "fastparrot=fastparrot.cli:main",
+            "sloth=lazysloth.cli:main",
         ],
     },
     include_package_data=True,
     package_data={
-        "fastparrot": ["shells/*.sh", "shells/*.fish", "shells/*.zsh"],
+        "lazysloth": ["shells/*.sh", "shells/*.fish", "shells/*.zsh"],
     },
 )

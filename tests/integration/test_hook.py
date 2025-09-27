@@ -9,8 +9,8 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 from io import StringIO
 
-from fastparrot.monitors import hook
-from fastparrot.monitors.command_monitor import MonitorAction, MonitorResult
+from lazysloth.monitors import hook
+from lazysloth.monitors.command_monitor import MonitorAction, MonitorResult
 
 
 @pytest.mark.integration
@@ -30,9 +30,9 @@ class TestHook:
                 hook.main()
                 mock_exit.assert_called_with(0)
 
-    def test_hook_main_fastparrot_command(self):
-        """Test hook main with fastparrot command (should be ignored)."""
-        with patch.object(sys, 'argv', ['hook', 'fastparrot', 'status']):
+    def test_hook_main_lazysloth_command(self):
+        """Test hook main with lazysloth command (should be ignored)."""
+        with patch.object(sys, 'argv', ['hook', 'lazysloth', 'status']):
             with patch.object(sys, 'exit') as mock_exit:
                 hook.main()
                 mock_exit.assert_called_with(0)
@@ -40,7 +40,7 @@ class TestHook:
     def test_hook_main_regular_command_no_alias(self):
         """Test hook main with regular command that has no alias."""
         with patch.object(sys, 'argv', ['hook', 'unknown_command']):
-            with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
+            with patch('lazysloth.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 mock_monitor.record_command.return_value = None
                 mock_monitor_class.return_value = mock_monitor
@@ -52,7 +52,7 @@ class TestHook:
     def test_hook_main_command_with_suggestion(self):
         """Test hook main with command that has alias suggestion."""
         with patch.object(sys, 'argv', ['hook', 'git', 'status']):
-            with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
+            with patch('lazysloth.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 mock_monitor.record_command.return_value = MonitorResult(
                     MonitorAction.NOTICE,
@@ -72,7 +72,7 @@ class TestHook:
     def test_hook_main_command_blocked(self):
         """Test hook main with command that should be blocked."""
         with patch.object(sys, 'argv', ['hook', 'git', 'status']):
-            with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
+            with patch('lazysloth.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 # Set up the mock to return a blocking message
                 blocking_message = "\n🦥🚫 Time to be lazy.\nUse 'gs' instead of 'git status'"
@@ -105,7 +105,7 @@ class TestHook:
     def test_hook_main_command_with_multiple_args(self):
         """Test hook main with command that has multiple arguments."""
         with patch.object(sys, 'argv', ['hook', 'git', 'status', '--short', '--branch']):
-            with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
+            with patch('lazysloth.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 mock_monitor.record_command.return_value = None
                 mock_monitor_class.return_value = mock_monitor
@@ -136,8 +136,8 @@ class TestHook:
             }
 
             with patch.object(Path, 'home', return_value=home_dir):
-                with patch('fastparrot.monitors.command_monitor.Config') as mock_config_class:
-                    with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector_class:
+                with patch('lazysloth.monitors.command_monitor.Config') as mock_config_class:
+                    with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector_class:
                         # Setup isolated config
                         mock_config = MagicMock()
                         mock_config.config_dir = config_dir
@@ -168,17 +168,17 @@ class TestHook:
                                     output = mock_stdout.getvalue()
                                     assert "gs" in output  # Verify alias suggestion present
 
-    def test_hook_filters_fastparrot_commands(self):
-        """Test that hook properly filters out FastParrot's own commands."""
-        fastparrot_commands = [
-            'fastparrot status',
-            'fastparrot install',
-            'fastparrot collect',
-            'python -m fastparrot.monitors.hook',
-            'some command with fastparrot in it'
+    def test_hook_filters_lazysloth_commands(self):
+        """Test that hook properly filters out LazySloth's own commands."""
+        lazysloth_commands = [
+            'lazysloth status',
+            'lazysloth install',
+            'lazysloth collect',
+            'python -m lazysloth.monitors.hook',
+            'some command with lazysloth in it'
         ]
 
-        for cmd in fastparrot_commands:
+        for cmd in lazysloth_commands:
             with patch.object(sys, 'argv', ['hook'] + cmd.split()):
                 with patch.object(sys, 'exit') as mock_exit:
                     hook.main()
@@ -187,7 +187,7 @@ class TestHook:
     def test_hook_handles_command_monitor_exception(self):
         """Test that hook gracefully handles CommandMonitor exceptions."""
         with patch.object(sys, 'argv', ['hook', 'git', 'status']):
-            with patch('fastparrot.monitors.hook.CommandMonitor') as mock_monitor_class:
+            with patch('lazysloth.monitors.hook.CommandMonitor') as mock_monitor_class:
                 mock_monitor = MagicMock()
                 mock_monitor.record_command.side_effect = Exception("Monitor error")
                 mock_monitor_class.return_value = mock_monitor
@@ -227,8 +227,8 @@ class TestHookIntegrationScenarios:
             stats_data = {}
 
             with patch.object(Path, 'home', return_value=home_dir):
-                with patch('fastparrot.monitors.command_monitor.Config') as mock_config_class:
-                    with patch('fastparrot.monitors.command_monitor.AliasCollector') as mock_collector_class:
+                with patch('lazysloth.monitors.command_monitor.Config') as mock_config_class:
+                    with patch('lazysloth.monitors.command_monitor.AliasCollector') as mock_collector_class:
                         # Setup config that will persist stats between calls
                         mock_config = MagicMock()
                         mock_config.config_dir = config_dir
@@ -249,7 +249,7 @@ class TestHookIntegrationScenarios:
                         mock_collector_class.return_value = mock_collector
 
                         # Simulate multiple command executions
-                        with patch('fastparrot.monitors.command_monitor.datetime') as mock_dt:
+                        with patch('lazysloth.monitors.command_monitor.datetime') as mock_dt:
                             mock_dt.now.return_value.isoformat.return_value = '2024-01-01T12:00:00'
 
                             # First execution - should show notice

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from fastparrot.core.auto_learner import AutoLearner
+from lazysloth.core.auto_learner import AutoLearner
 
 
 @pytest.mark.unit
@@ -17,8 +17,8 @@ class TestAutoLearner:
 
     def test_init(self):
         """Test AutoLearner initialization."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 learner = AutoLearner()
 
                 assert learner.config is not None
@@ -28,8 +28,8 @@ class TestAutoLearner:
 
     def test_get_monitored_files_all_shells(self, isolated_config):
         """Test getting monitored files for all shells."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'bash': ['/home/user/.bashrc'],
@@ -49,8 +49,8 @@ class TestAutoLearner:
 
     def test_get_monitored_files_specific_shell(self, isolated_config):
         """Test getting monitored files for specific shell."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'bash': ['/home/user/.bashrc'],
@@ -67,8 +67,8 @@ class TestAutoLearner:
 
     def test_add_monitored_file_new_file(self, isolated_config):
         """Test adding a new monitored file."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'zsh': ['/home/user/.zshrc']
@@ -85,8 +85,8 @@ class TestAutoLearner:
 
     def test_add_monitored_file_existing_file(self, isolated_config):
         """Test adding an already monitored file."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 # Use absolute path that will match the method's conversion
                 from pathlib import Path
                 abs_path = str(Path('/home/user/.zshrc').expanduser().resolve())
@@ -103,8 +103,8 @@ class TestAutoLearner:
 
     def test_remove_monitored_file_existing(self, isolated_config):
         """Test removing an existing monitored file."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 monitored_files = {
                     'zsh': ['/home/user/.zshrc', '/home/user/.zsh_aliases']
@@ -122,8 +122,8 @@ class TestAutoLearner:
 
     def test_remove_monitored_file_not_found(self, isolated_config):
         """Test removing a non-existent monitored file."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'zsh': ['/home/user/.zshrc']
@@ -136,8 +136,8 @@ class TestAutoLearner:
 
     def test_learn_from_shell_bash(self, isolated_config):
         """Test learning aliases from bash files."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 # Create test file
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.bashrc', delete=False) as f:
                     f.write("alias test_alias='echo test'\n")
@@ -184,8 +184,8 @@ class TestAutoLearner:
 
     def test_learn_from_monitored_files_all_shells(self, isolated_config):
         """Test learning from all monitored files."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitored_files': {
@@ -214,8 +214,8 @@ class TestAutoLearner:
 
     def test_learn_from_monitored_files_specific_shell(self, isolated_config):
         """Test learning from specific shell only."""
-        with patch('fastparrot.core.auto_learner.Config') as mock_config:
-            with patch('fastparrot.core.auto_learner.AliasCollector') as mock_collector:
+        with patch('lazysloth.core.auto_learner.Config') as mock_config:
+            with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
 
                 learner = AutoLearner()

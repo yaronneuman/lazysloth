@@ -11,13 +11,13 @@ from unittest.mock import patch, MagicMock
 import pytest
 import yaml
 
-from fastparrot.core.config import Config
+from lazysloth.core.config import Config
 
 
 @pytest.fixture
 def isolated_config_dir(tmp_path):
     """Create an isolated configuration directory for testing."""
-    config_dir = tmp_path / "fastparrot_test_config"
+    config_dir = tmp_path / "lazysloth_test_config"
     config_dir.mkdir()
     return config_dir
 
@@ -208,7 +208,7 @@ def mock_datetime():
     """Mock datetime to ensure consistent test results."""
     from datetime import datetime
     mock_dt = datetime(2024, 1, 1, 12, 0, 0)
-    with patch('fastparrot.monitors.command_monitor.datetime') as mock:
+    with patch('lazysloth.monitors.command_monitor.datetime') as mock:
         mock.now.return_value = mock_dt
         yield mock
 

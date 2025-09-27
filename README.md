@@ -1,4 +1,4 @@
-# FastParrot 🦜
+# LazySloth 🦥
 
 A CLI-first application that helps developers and terminal users improve their productivity by sharing shortcuts, aliases, and scripts with each other.
 
@@ -14,23 +14,23 @@ A CLI-first application that helps developers and terminal users improve their p
 ### From Source
 
 ```bash
-git clone https://github.com/yaronneuman/fastparrot.git
-cd fastparrot
+git clone https://github.com/yaronneuman/lazysloth.git
+cd lazysloth
 pip install -e .
 ```
 
 ### Install Shell Integration
 
-After installing FastParrot, you need to integrate it with your shell:
+After installing LazySloth, you need to integrate it with your shell:
 
 ```bash
 # Auto-detect shell and install
-fastparrot install
+sloth install
 
 # Or specify a shell explicitly
-fastparrot install --shell bash
-fastparrot install --shell zsh
-fastparrot install --shell fish
+sloth install --shell bash
+sloth install --shell zsh
+sloth install --shell fish
 ```
 
 Then restart your shell or source your configuration:
@@ -53,7 +53,7 @@ source ~/.config/fish/config.fish
 Discover aliases already defined in your shell configurations:
 
 ```bash
-fastparrot collect
+sloth collect
 ```
 
 ### Monitor Command Usage
@@ -61,13 +61,13 @@ fastparrot collect
 Enable command monitoring (enabled by default):
 
 ```bash
-fastparrot monitor --enable
+sloth monitor --enable
 ```
 
 Disable monitoring:
 
 ```bash
-fastparrot monitor --disable
+sloth monitor --disable
 ```
 
 ### Check Status
@@ -75,22 +75,22 @@ fastparrot monitor --disable
 View FastParrot status and configuration:
 
 ```bash
-fastparrot status
+sloth status
 ```
 
 ## How It Works
 
-1. **Installation**: FastParrot integrates with your shell by adding a command hook that runs before each command execution.
+1. **Installation**: LazySloth integrates with your shell by adding a command hook that runs before each command execution.
 
 2. **Alias Collection**: It scans your shell configuration files (`.bashrc`, `.zshrc`, etc.) to discover existing aliases.
 
-3. **Command Monitoring**: Every command you run is monitored. When you use a command that has an available alias, FastParrot suggests using the alias instead.
+3. **Command Monitoring**: Every command you run is monitored. When you use a command that has an available alias, LazySloth suggests using the alias instead.
 
-4. **Learning**: After seeing the same command multiple times (default: 3 times), FastParrot will suggest creating an alias or remind you about an existing one.
+4. **Learning**: After seeing the same command multiple times (default: 3 times), LazySloth will suggest creating an alias or remind you about an existing one.
 
 ## Configuration
 
-FastParrot stores its configuration in `~/.config/fastparrot/`:
+LazySloth stores its configuration in `~/.config/lazysloth/`:
 
 - `config.yaml` - Main configuration
 - `aliases.yaml` - Discovered aliases
@@ -129,7 +129,7 @@ $ ls -la
 
 ## Architecture
 
-FastParrot is designed with a modular architecture:
+LazySloth is designed with a modular architecture:
 
 - **Core**: Configuration management and installation logic
 - **Collectors**: Extract aliases from various shell configurations

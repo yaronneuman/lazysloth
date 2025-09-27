@@ -1,5 +1,5 @@
 """
-FastParrotRC management - handles ~/.fastparrotrc file for user-defined aliases.
+SlothRC management - handles ~/.slothrc file for user-defined aliases.
 """
 
 import os
@@ -7,14 +7,14 @@ from pathlib import Path
 from typing import Dict, List
 
 
-class FastParrotRC:
-    """Manages the ~/.fastparrotrc file for user-defined aliases."""
+class SlothRC:
+    """Manages the ~/.slothrc file for user-defined aliases."""
 
     def __init__(self):
-        self.rc_file = Path.home() / '.fastparrotrc'
+        self.rc_file = Path.home() / '.slothrc'
 
     def add_alias(self, alias_name: str, command: str):
-        """Add an alias to .fastparrotrc file."""
+        """Add an alias to .slothrc file."""
         # Read existing content
         existing_aliases = self._read_aliases()
 
@@ -25,7 +25,7 @@ class FastParrotRC:
         self._write_aliases(existing_aliases)
 
     def remove_alias(self, alias_name: str) -> bool:
-        """Remove an alias from .fastparrotrc file. Returns True if removed, False if not found."""
+        """Remove an alias from .slothrc file. Returns True if removed, False if not found."""
         existing_aliases = self._read_aliases()
 
         if alias_name in existing_aliases:
@@ -36,11 +36,11 @@ class FastParrotRC:
         return False
 
     def get_aliases(self) -> Dict[str, str]:
-        """Get all aliases from .fastparrotrc file."""
+        """Get all aliases from .slothrc file."""
         return self._read_aliases()
 
     def _read_aliases(self) -> Dict[str, str]:
-        """Read aliases from .fastparrotrc file."""
+        """Read aliases from .slothrc file."""
         aliases = {}
 
         if not self.rc_file.exists():
@@ -80,11 +80,11 @@ class FastParrotRC:
         return aliases
 
     def _write_aliases(self, aliases: Dict[str, str]):
-        """Write aliases to .fastparrotrc file."""
+        """Write aliases to .slothrc file."""
         # Create the file with header comment
         content = [
-            "# FastParrot user-defined aliases",
-            "# This file is automatically managed by FastParrot",
+            "# LazySloth user-defined aliases",
+            "# This file is automatically managed by LazySloth",
             "# You can edit it manually, but changes may be overwritten",
             ""
         ]
@@ -105,7 +105,7 @@ class FastParrotRC:
             raise RuntimeError(f"Failed to write to {self.rc_file}: {e}")
 
     def ensure_exists(self):
-        """Ensure .fastparrotrc file exists (create if it doesn't)."""
+        """Ensure .slothrc file exists (create if it doesn't)."""
         if not self.rc_file.exists():
             self._write_aliases({})
 

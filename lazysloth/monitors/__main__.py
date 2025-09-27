@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Entry point for python -m fastparrot.monitors.hook
+Entry point for python -m lazysloth.monitors.hook
 """
 
 from .hook import main

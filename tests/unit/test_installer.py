@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
-from fastparrot.core.installer import Installer
+from lazysloth.core.installer import Installer
 
 
 @pytest.mark.unit
@@ -104,9 +104,9 @@ class TestInstaller:
 
         code = installer._generate_integration_code('bash')
 
-        assert 'fastparrot_preexec()' in code
-        assert 'trap \'fastparrot_preexec\' DEBUG' in code
-        assert '/usr/bin/python3 -m fastparrot.monitors.hook' in code
+        assert 'lazysloth_preexec()' in code
+        assert 'trap \'lazysloth_preexec\' DEBUG' in code
+        assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
     def test_generate_integration_code_zsh(self, mock_shutil_which):
         """Test generating zsh integration code."""
@@ -114,10 +114,10 @@ class TestInstaller:
 
         code = installer._generate_integration_code('zsh')
 
-        assert 'fastparrot_widget()' in code
-        assert 'zle -N fastparrot_widget' in code
-        assert 'bindkey "^M" fastparrot_widget' in code
-        assert '/usr/bin/python3 -m fastparrot.monitors.hook' in code
+        assert 'lazysloth_widget()' in code
+        assert 'zle -N lazysloth_widget' in code
+        assert 'bindkey "^M" lazysloth_widget' in code
+        assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
     def test_generate_integration_code_fish(self, mock_shutil_which):
         """Test generating fish integration code."""
@@ -125,8 +125,8 @@ class TestInstaller:
 
         code = installer._generate_integration_code('fish')
 
-        assert 'function fastparrot_preexec --on-event fish_preexec' in code
-        assert '/usr/bin/python3 -m fastparrot.monitors.hook' in code
+        assert 'function lazysloth_preexec --on-event fish_preexec' in code
+        assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
     def test_generate_integration_code_unsupported_shell(self):
         """Test generating integration code for unsupported shell."""
@@ -136,7 +136,7 @@ class TestInstaller:
             installer._generate_integration_code('unknown')
 
     def test_install_new_config_file(self, mock_home_dir, mock_shutil_which):
-        """Test installing FastParrot to a new configuration file."""
+        """Test installing LazySloth to a new configuration file."""
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
@@ -149,12 +149,12 @@ class TestInstaller:
 
             # Verify integration was added
             content = bashrc.read_text()
-            assert '# FastParrot integration' in content
-            assert 'fastparrot_preexec()' in content
-            assert '# End FastParrot integration' in content
+            assert '# LazySloth integration' in content
+            assert 'lazysloth_preexec()' in content
+            assert '# End LazySloth integration' in content
 
     def test_install_existing_config_file(self, mock_home_dir, mock_shutil_which):
-        """Test installing FastParrot to an existing configuration file."""
+        """Test installing LazySloth to an existing configuration file."""
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
@@ -163,14 +163,14 @@ class TestInstaller:
             original_content = "# Existing config\nexport PATH=$HOME/bin:$PATH\n"
             bashrc.write_text(original_content)
 
-            # Install FastParrot
+            # Install LazySloth
             installer.install('bash')
 
             # Verify original content is preserved and integration is added
             content = bashrc.read_text()
             assert original_content in content
-            assert '# FastParrot integration' in content
-            assert 'fastparrot_preexec()' in content
+            assert '# LazySloth integration' in content
+            assert 'lazysloth_preexec()' in content
 
     def test_install_already_installed_no_force(self, mock_home_dir, mock_shutil_which):
         """Test installing when already installed without force flag."""
@@ -179,10 +179,10 @@ class TestInstaller:
         with patch.object(Path, 'home', return_value=mock_home_dir):
             # Create bashrc with existing integration
             bashrc = mock_home_dir / '.bashrc'
-            bashrc.write_text("# FastParrot integration\necho 'already installed'\n")
+            bashrc.write_text("# LazySloth integration\necho 'already installed'\n")
 
             # Should raise error when trying to install again
-            with pytest.raises(ValueError, match="FastParrot is already installed"):
+            with pytest.raises(ValueError, match="LazySloth is already installed"):
                 installer.install('bash')
 
     def test_install_already_installed_with_force(self, mock_home_dir, mock_shutil_which):
@@ -192,9 +192,9 @@ class TestInstaller:
         with patch.object(Path, 'home', return_value=mock_home_dir):
             # Create bashrc with existing integration
             bashrc = mock_home_dir / '.bashrc'
-            old_integration = """# FastParrot integration
+            old_integration = """# LazySloth integration
 old integration code
-# End FastParrot integration"""
+# End LazySloth integration"""
             bashrc.write_text(old_integration)
 
             # Mock uninstall method
@@ -217,34 +217,34 @@ old integration code
             installer.install('bash')
 
     def test_uninstall_removes_integration(self, mock_home_dir):
-        """Test uninstalling FastParrot removes integration code."""
+        """Test uninstalling LazySloth removes integration code."""
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create bashrc with FastParrot integration
+            # Create bashrc with LazySloth integration
             bashrc = mock_home_dir / '.bashrc'
             content_with_integration = """# Original content
 export PATH=$HOME/bin:$PATH
 
-# FastParrot integration
-fastparrot_preexec() {
-    echo "FastParrot hook"
+# LazySloth integration
+lazysloth_preexec() {
+    echo "LazySloth hook"
 }
-# End FastParrot integration
+# End LazySloth integration
 
 # More original content
 alias ll='ls -la'
 """
             bashrc.write_text(content_with_integration)
 
-            # Uninstall FastParrot
+            # Uninstall LazySloth
             installer.uninstall('bash')
 
             # Verify integration was removed but original content remains
             content = bashrc.read_text()
-            assert '# FastParrot integration' not in content
-            assert 'fastparrot_preexec' not in content
-            assert '# End FastParrot integration' not in content
+            assert '# LazySloth integration' not in content
+            assert 'lazysloth_preexec' not in content
+            assert '# End LazySloth integration' not in content
             assert 'export PATH=$HOME/bin:$PATH' in content
             assert "alias ll='ls -la'" in content
 
@@ -257,7 +257,7 @@ alias ll='ls -la'
             installer.uninstall('bash')  # Should complete without error
 
     def test_uninstall_multiple_integrations(self, mock_home_dir):
-        """Test uninstalling removes multiple FastParrot integration blocks."""
+        """Test uninstalling removes multiple LazySloth integration blocks."""
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
@@ -265,40 +265,40 @@ alias ll='ls -la'
             bashrc = mock_home_dir / '.bashrc'
             content_with_multiple = """# Original content
 
-# FastParrot integration
+# LazySloth integration
 old integration 1
-# End FastParrot integration
+# End LazySloth integration
 
 # Some other content
 
-# FastParrot integration
+# LazySloth integration
 old integration 2
-# End FastParrot integration
+# End LazySloth integration
 
 # More content
 """
             bashrc.write_text(content_with_multiple)
 
-            # Uninstall FastParrot
+            # Uninstall LazySloth
             installer.uninstall('bash')
 
             # Verify all integration blocks were removed
             content = bashrc.read_text()
-            assert '# FastParrot integration' not in content
+            assert '# LazySloth integration' not in content
             assert 'old integration 1' not in content
             assert 'old integration 2' not in content
-            assert '# End FastParrot integration' not in content
+            assert '# End LazySloth integration' not in content
 
-    def test_clean_fastparrot_data(self, mock_home_dir):
-        """Test that _clean_fastparrot_data removes the correct files."""
-        from fastparrot.core.installer import Installer
+    def test_clean_lazysloth_data(self, mock_home_dir):
+        """Test that _clean_lazysloth_data removes the correct files."""
+        from lazysloth.core.installer import Installer
 
         # Create installer and config
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
             # Create config dir and files that should be removed
-            config_dir = mock_home_dir / '.config' / 'fastparrot'
+            config_dir = mock_home_dir / '.config' / 'lazysloth'
             config_dir.mkdir(parents=True, exist_ok=True)
 
             # Create files that should be removed
@@ -316,7 +316,7 @@ old integration 2
                 assert f.exists()
 
             # Call cleanup method
-            installer._clean_fastparrot_data()
+            installer._clean_lazysloth_data()
 
             # Verify files to be removed are gone
             assert not aliases_file.exists()
@@ -330,15 +330,15 @@ old integration 2
 
     def test_uninstall_calls_cleanup(self, mock_home_dir):
         """Test that uninstall method calls cleanup."""
-        from fastparrot.core.installer import Installer
+        from lazysloth.core.installer import Installer
 
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            with patch.object(installer, '_clean_fastparrot_data') as mock_cleanup:
+            with patch.object(installer, '_clean_lazysloth_data') as mock_cleanup:
                 # Create a bashrc file to uninstall from
                 bashrc = mock_home_dir / '.bashrc'
-                bashrc.write_text('# FastParrot integration\ntest\n# End FastParrot integration\n')
+                bashrc.write_text('# LazySloth integration\ntest\n# End LazySloth integration\n')
 
                 installer.uninstall('bash')
 
@@ -347,13 +347,13 @@ old integration 2
 
     def test_install_force_calls_cleanup(self, mock_home_dir):
         """Test that install with force calls cleanup."""
-        from fastparrot.core.installer import Installer
+        from lazysloth.core.installer import Installer
 
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            with patch.object(installer, '_clean_fastparrot_data') as mock_cleanup:
-                with patch('fastparrot.core.fastparrotrc.FastParrotRC'):
+            with patch.object(installer, '_clean_lazysloth_data') as mock_cleanup:
+                with patch('lazysloth.core.slothrc.SlothRC'):
                     # Create a bashrc file
                     bashrc = mock_home_dir / '.bashrc'
                     bashrc.write_text('# Some existing content\n')

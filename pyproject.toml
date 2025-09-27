@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fastparrot"
+name = "lazysloth"
 version = "1.0.0"
 description = "CLI-first application for sharing and learning terminal shortcuts and aliases"
 authors = [{name = "Yaron Neuman"}]
@@ -37,14 +37,14 @@ test = [
 ]
 
 [project.scripts]
-fastparrot = "fastparrot.cli:main"
+sloth = "lazysloth.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["fastparrot*"]
+include = ["lazysloth*"]
 
 [tool.setuptools.package-data]
-fastparrot = ["shells/*.sh", "shells/*.fish", "shells/*.zsh"]
+lazysloth = ["shells/*.sh", "shells/*.fish", "shells/*.zsh"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -54,7 +54,7 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=fastparrot",
+    "--cov=lazysloth",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-fail-under=50",

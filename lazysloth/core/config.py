@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 class Config:
-    """Manages FastParrot configuration."""
+    """Manages LazySloth configuration."""
 
     def __init__(self):
-        self.config_dir = Path.home() / '.config' / 'fastparrot'
+        self.config_dir = Path.home() / '.config' / 'lazysloth'
         self.config_file = self.config_dir / 'config.yaml'
         self.aliases_file = self.config_dir / 'aliases.yaml'
         self.stats_file = self.config_dir / 'stats.yaml'
@@ -42,16 +42,16 @@ class Config:
                 'bash': [
                     str(home / '.bashrc'),
                     str(home / '.bash_aliases'),
-                    str(home / '.fastparrotrc')
+                    str(home / '.slothrc')
                 ],
                 'zsh': [
                     str(home / '.zshrc'),
                     str(home / '.zsh_aliases'),
-                    str(home / '.fastparrotrc')
+                    str(home / '.slothrc')
                 ],
                 'fish': [
                     str(home / '.config/fish/config.fish'),
-                    str(home / '.fastparrotrc')
+                    str(home / '.slothrc')
                 ]
             }
         }

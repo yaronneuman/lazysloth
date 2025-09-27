@@ -17,8 +17,8 @@ def main():
     # Get the command from arguments
     command = ' '.join(sys.argv[1:]).strip()
 
-    # Skip empty commands or FastParrot commands
-    if not command or command.startswith('fastparrot') or 'fastparrot' in command:
+    # Skip empty commands or LazySloth commands
+    if not command or command.startswith('lazysloth') or 'lazysloth' in command:
         sys.exit(0)  # Allow command to proceed
 
     try:
@@ -37,8 +37,8 @@ def main():
             if result.is_blocking():
                 sys.exit(1)
     except Exception as e:
-        print("FastParrot failed:", e)
-        # Silently fail - never block user commands due to FastParrot errors
+        print("LazySloth failed:", e)
+        # Silently fail - never block user commands due to LazySloth errors
         pass
 
     # If no result or non-blocking action, exit with success (allow command)
