@@ -47,14 +47,6 @@ source ~/.zshrc
 
 ## Usage
 
-### Collect Existing Aliases
-
-Discover aliases already defined in your shell configurations:
-
-```bash
-sloth collect
-```
-
 ### Configure Command Monitoring
 
 View current monitoring settings:
