@@ -8,7 +8,7 @@ from pathlib import Path
 from click.testing import CliRunner
 from unittest.mock import patch, MagicMock
 
-from lazysloth.cli import main, install, uninstall, monitor, status, add
+from lazysloth.cli import main, install, uninstall, monitor, status, alias
 
 
 @pytest.mark.integration
@@ -185,8 +185,8 @@ class TestCLI:
 
     @patch('lazysloth.cli.Config')
     @patch('lazysloth.core.slothrc.SlothRC')
-    def test_add_command_success(self, mock_slothrc_class, mock_config_class):
-        """Test add command successful execution."""
+    def test_alias_add_success(self, mock_slothrc_class, mock_config_class):
+        """Test alias add command successful execution."""
         # Mock config
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {}  # No existing aliases
@@ -197,7 +197,7 @@ class TestCLI:
         mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
-        result = runner.invoke(add, ['gs', 'git status'])
+        result = runner.invoke(alias, ['add', 'gs', 'git status'])
 
         assert result.exit_code == 0
         assert '✅ Added alias: gs -> git status' in result.output
@@ -207,8 +207,8 @@ class TestCLI:
 
     @patch('lazysloth.cli.Config')
     @patch('lazysloth.core.slothrc.SlothRC')
-    def test_add_command_with_complex_command(self, mock_slothrc_class, mock_config_class):
-        """Test add command with complex multi-word command."""
+    def test_alias_add_with_complex_command(self, mock_slothrc_class, mock_config_class):
+        """Test alias add command with complex multi-word command."""
         # Mock config
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {}
@@ -219,15 +219,15 @@ class TestCLI:
         mock_slothrc_class.return_value = mock_slothrc
 
         runner = CliRunner()
-        result = runner.invoke(add, ['ll', 'ls -la --color=auto --human-readable'])
+        result = runner.invoke(alias, ['add', 'll', 'ls -la --color=auto --human-readable'])
 
         assert result.exit_code == 0
         assert '✅ Added alias: ll -> ls -la --color=auto --human-readable' in result.output
 
     @patch('lazysloth.cli.Config')
     @patch('lazysloth.core.slothrc.SlothRC')
-    def test_add_command_overwrite_existing(self, mock_slothrc_class, mock_config_class):
-        """Test add command when alias already exists."""
+    def test_alias_add_overwrite_existing(self, mock_slothrc_class, mock_config_class):
+        """Test alias add command when alias already exists."""
         # Mock config with existing alias
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {
@@ -241,15 +241,15 @@ class TestCLI:
 
         runner = CliRunner()
         # Test overwriting with same command
-        result = runner.invoke(add, ['gs', 'git status'])
+        result = runner.invoke(alias, ['add', 'gs', 'git status'])
 
         assert result.exit_code == 0
         assert '✅ Alias \'gs\' already exists with the same command' in result.output
 
     @patch('lazysloth.cli.Config')
     @patch('lazysloth.core.slothrc.SlothRC')
-    def test_add_command_overwrite_different(self, mock_slothrc_class, mock_config_class):
-        """Test add command when alias exists with different command."""
+    def test_alias_add_overwrite_different(self, mock_slothrc_class, mock_config_class):
+        """Test alias add command when alias exists with different command."""
         # Mock config with existing alias
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {
@@ -263,21 +263,21 @@ class TestCLI:
 
         runner = CliRunner()
         # Test overwriting with different command - answer 'no'
-        result = runner.invoke(add, ['gs', 'git show'], input='n\n')
+        result = runner.invoke(alias, ['add', 'gs', 'git show'], input='n\n')
 
         assert result.exit_code == 0
         assert 'already exists with command: git status' in result.output
         assert 'Operation cancelled' in result.output
 
-    def test_add_command_empty_args(self):
-        """Test add command with empty arguments."""
+    def test_alias_add_empty_args(self):
+        """Test alias add command with empty arguments."""
         runner = CliRunner()
-        result = runner.invoke(add, ['', 'git status'])
+        result = runner.invoke(alias, ['add', '', 'git status'])
 
         assert result.exit_code == 1
         assert '❌ Both alias name and command are required' in result.output
 
-        result = runner.invoke(add, ['gs', ''])
+        result = runner.invoke(alias, ['add', 'gs', ''])
         assert result.exit_code == 1
         assert '❌ Both alias name and command are required' in result.output
 
@@ -368,6 +368,160 @@ class TestCLI:
         assert 'Action: none' in result.output
         assert 'Known aliases: 0' in result.output
         assert 'Monitored files: 0' in result.output
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_list_with_aliases(self, mock_config_class):
+        """Test alias list command with existing aliases."""
+        # Mock config with multiple aliases from different sources
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bashrc'},
+            'll': {'command': 'ls -la', 'shell': 'zsh', 'source_file': '.zshrc'},
+            'gc': {'command': 'git commit', 'shell': 'user_defined', 'source_file': '.slothrc'},
+            'gp': {'command': 'git push', 'shell': 'bash', 'source_file': '.bash_aliases'}
+        }
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['list'])
+
+        assert result.exit_code == 0
+        assert '.bashrc:' in result.output
+        assert '.zshrc:' in result.output
+        assert '.slothrc:' in result.output
+        assert '.bash_aliases:' in result.output
+        assert 'gs → git status (bash)' in result.output
+        assert 'll → ls -la (zsh)' in result.output
+        assert 'gc → git commit (user_defined)' in result.output
+        assert 'gp → git push (bash)' in result.output
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_list_empty(self, mock_config_class):
+        """Test alias list command when no aliases exist."""
+        # Mock config with no aliases
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {}
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['list'])
+
+        assert result.exit_code == 0
+        assert 'No aliases found.' in result.output
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_list_failure(self, mock_config_class):
+        """Test alias list command when config fails to load."""
+        # Mock config that raises an exception
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.side_effect = Exception("Config error")
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['list'])
+
+        assert result.exit_code == 1
+        assert '❌ Failed to list aliases: Config error' in result.output
+
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_alias_rm_success(self, mock_slothrc_class, mock_config_class):
+        """Test alias rm command successful removal."""
+        # Mock config with alias from .slothrc
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'user_defined', 'source_file': '.slothrc'}
+        }
+        mock_config_class.return_value = mock_config
+
+        # Mock SlothRC successful removal
+        mock_slothrc = MagicMock()
+        mock_slothrc.remove_alias.return_value = True
+        mock_slothrc_class.return_value = mock_slothrc
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm', 'gs'])
+
+        assert result.exit_code == 0
+        assert '✅ Removed alias: gs' in result.output
+        assert 'Alias removed from ~/.slothrc' in result.output
+        mock_slothrc.remove_alias.assert_called_once_with('gs')
+        mock_config.save_aliases_data.assert_called_once()
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_rm_not_found(self, mock_config_class):
+        """Test alias rm command when alias doesn't exist."""
+        # Mock config with no aliases
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {}
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm', 'nonexistent'])
+
+        assert result.exit_code == 1
+        assert "❌ Alias 'nonexistent' not found" in result.output
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_rm_readonly_source(self, mock_config_class):
+        """Test alias rm command when alias is from read-only source."""
+        # Mock config with alias from .bashrc (read-only)
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bashrc'}
+        }
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm', 'gs'])
+
+        assert result.exit_code == 1
+        assert "❌ Cannot remove alias 'gs' - it's from .bashrc" in result.output
+        assert "Only aliases added via 'sloth alias add' can be removed" in result.output
+
+    @patch('lazysloth.cli.Config')
+    @patch('lazysloth.core.slothrc.SlothRC')
+    def test_alias_rm_slothrc_not_found(self, mock_slothrc_class, mock_config_class):
+        """Test alias rm command when alias exists in config but not in .slothrc file."""
+        # Mock config with alias from .slothrc
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.return_value = {
+            'gs': {'command': 'git status', 'shell': 'user_defined', 'source_file': '.slothrc'}
+        }
+        mock_config_class.return_value = mock_config
+
+        # Mock SlothRC failed removal (alias not found in file)
+        mock_slothrc = MagicMock()
+        mock_slothrc.remove_alias.return_value = False
+        mock_slothrc_class.return_value = mock_slothrc
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm', 'gs'])
+
+        assert result.exit_code == 0  # Still returns 0 even if not found in file
+        assert "❌ Alias 'gs' not found in ~/.slothrc" in result.output
+
+    @patch('lazysloth.cli.Config')
+    def test_alias_rm_failure(self, mock_config_class):
+        """Test alias rm command when config fails to load."""
+        # Mock config that raises an exception
+        mock_config = MagicMock()
+        mock_config.get_aliases_data.side_effect = Exception("Config error")
+        mock_config_class.return_value = mock_config
+
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm', 'gs'])
+
+        assert result.exit_code == 1
+        assert '❌ Failed to remove alias: Config error' in result.output
+
+    def test_alias_rm_missing_argument(self):
+        """Test alias rm command without alias name argument."""
+        runner = CliRunner()
+        result = runner.invoke(alias, ['rm'])
+
+        assert result.exit_code == 2  # Click returns 2 for missing arguments
+        assert 'Missing argument' in result.output
 
 
 @pytest.mark.integration

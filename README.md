@@ -127,6 +127,29 @@ $ ls -la
 💡 You can use 'll' instead of 'ls -la'
 ```
 
+## Managing Aliases
+
+You can add, list, and remove custom aliases:
+
+```bash
+# Add a new alias
+$ sloth alias add gs "git status --porcelain"
+✅ Added alias: gs -> git status --porcelain
+
+# List all known aliases
+$ sloth alias list
+📁 .slothrc:
+  gs → git status --porcelain (user_defined)
+
+📁 /home/user/.bashrc:
+  ll → ls -la (bash)
+  ..  → cd .. (bash)
+
+# Remove an alias (only works for .slothrc aliases)
+$ sloth alias rm gs
+✅ Removed alias: gs
+```
+
 ## Architecture
 
 LazySloth is designed with a modular architecture:

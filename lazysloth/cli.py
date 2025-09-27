@@ -92,13 +92,19 @@ def uninstall(shell):
         click.echo(f"❌ Uninstallation failed: {e}", err=True)
         sys.exit(1)
 
-@main.command()
+@main.group()
+def alias():
+    """Manage aliases (add, list, remove)."""
+    pass
+
+
+@alias.command()
 @click.argument('alias_name', required=True)
 @click.argument('command', required=True)
 def add(alias_name, command):
-    """Add a new alias. Usage: sloth add <alias> "command"
+    """Add a new alias. Usage: sloth alias add <alias> "command"
 
-    Example: sloth add gs "git status --porcelain"
+    Example: sloth alias add gs "git status --porcelain"
     """
     if not alias_name or not command:
         click.echo("❌ Both alias name and command are required", err=True)
@@ -139,6 +145,84 @@ def add(alias_name, command):
 
     except Exception as e:
         click.echo(f"❌ Failed to add alias: {e}", err=True)
+        sys.exit(1)
+
+
+@alias.command()
+def list():
+    """List all known aliases and their source files."""
+    try:
+        config = Config()
+        aliases = config.get_aliases_data()
+
+        if not aliases:
+            click.echo("No aliases found.")
+            return
+
+        # Group aliases by source file
+        by_source = {}
+        for name, data in aliases.items():
+            source = data.get('source_file', 'unknown')
+            if source not in by_source:
+                by_source[source] = []
+            by_source[source].append((name, data))
+
+        # Display aliases grouped by source
+        for source_file in sorted(by_source.keys()):
+            click.echo(f"\n📁 {source_file}:")
+            for alias_name, alias_data in sorted(by_source[source_file]):
+                command = alias_data.get('command', '')
+                shell = alias_data.get('shell', 'unknown')
+                click.echo(f"  {alias_name} → {command} ({shell})")
+
+    except Exception as e:
+        click.echo(f"❌ Failed to list aliases: {e}", err=True)
+        sys.exit(1)
+
+
+@alias.command()
+@click.argument('alias_name', required=True)
+def rm(alias_name):
+    """Remove an alias from ~/.slothrc file.
+
+    Only removes aliases that were added to ~/.slothrc via 'sloth alias add'.
+    Other aliases from shell config files are read-only.
+
+    Example: sloth alias rm gs
+    """
+    try:
+        config = Config()
+        aliases = config.get_aliases_data()
+
+        # Check if alias exists
+        if alias_name not in aliases:
+            click.echo(f"❌ Alias '{alias_name}' not found")
+            sys.exit(1)
+
+        alias_data = aliases[alias_name]
+        source_file = alias_data.get('source_file', '')
+
+        # Only allow removal of aliases from .slothrc
+        if source_file != '.slothrc':
+            click.echo(f"❌ Cannot remove alias '{alias_name}' - it's from {source_file}")
+            click.echo("💡 Only aliases added via 'sloth alias add' can be removed")
+            sys.exit(1)
+
+        # Remove from .slothrc file
+        from .core.slothrc import SlothRC
+        slothrc = SlothRC()
+        if slothrc.remove_alias(alias_name):
+            # Remove from LazySloth's database
+            del aliases[alias_name]
+            config.save_aliases_data(aliases)
+
+            click.echo(f"✅ Removed alias: {alias_name}")
+            click.echo(f"💡 Alias removed from ~/.slothrc")
+        else:
+            click.echo(f"❌ Alias '{alias_name}' not found in ~/.slothrc")
+
+    except Exception as e:
+        click.echo(f"❌ Failed to remove alias: {e}", err=True)
         sys.exit(1)
 
 
