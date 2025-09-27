@@ -1,5 +1,5 @@
 """
-Automatic alias learning system that monitors shell configuration files.
+Automatic alias learning system that monitors bash and zsh shell configuration files.
 """
 
 from pathlib import Path
@@ -69,8 +69,6 @@ class AutoLearner:
                 try:
                     if shell in ['bash', 'zsh']:
                         file_aliases = self.collector._parse_bash_zsh_aliases(file_path, shell)
-                    elif shell == 'fish':
-                        file_aliases = self.collector._parse_fish_config(file_path)
                     else:
                         continue
 
@@ -146,7 +144,7 @@ class AutoLearner:
         Add a file to the monitored files list for a shell.
 
         Args:
-            shell: Shell name (bash, zsh, fish)
+            shell: Shell name (bash, zsh)
             file_path: Path to file to monitor
 
         Returns:
@@ -173,7 +171,7 @@ class AutoLearner:
         Remove a file from the monitored files list for a shell.
 
         Args:
-            shell: Shell name (bash, zsh, fish)
+            shell: Shell name (bash, zsh)
             file_path: Path to file to stop monitoring
 
         Returns:

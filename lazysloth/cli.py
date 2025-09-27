@@ -38,7 +38,7 @@ def main():
     pass
 
 @main.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Target shell')
+@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Target shell')
 @click.option('--force', is_flag=True, help='Force reinstallation')
 def install(shell, force):
     """Install LazySloth shell integration."""
@@ -72,7 +72,7 @@ def install(shell, force):
         sys.exit(1)
 
 @main.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Target shell')
+@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Target shell')
 def uninstall(shell):
     """Uninstall LazySloth shell integration."""
     installer = Installer()
@@ -295,7 +295,7 @@ def config(enabled, action, notice_threshold, block_threshold):
         click.echo(f"Block threshold set to {block_threshold}")
 
 @monitor.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh', 'fish']), help='Show files for specific shell')
+@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Show files for specific shell')
 @click.option('--add', help='Add file to monitoring list (requires --shell)')
 @click.option('--remove', help='Remove file from monitoring list (requires --shell)')
 def files(shell, add, remove):

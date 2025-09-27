@@ -131,77 +131,6 @@ alias topcpu="ps aux --sort=-%cpu | head"
 alias topmem="ps aux --sort=-%mem | head"
 """
 
-FISH_CONFIG = """
-# Sample Fish configuration
-set -gx PATH $HOME/bin $PATH
-
-# Fish greeting
-set fish_greeting ""
-
-# Aliases
-alias ll 'ls -la'
-alias la 'ls -A'
-alias l 'ls -CF'
-alias .. 'cd ..'
-alias ... 'cd ../..'
-
-# Git aliases
-alias gs 'git status'
-alias gd 'git diff'
-alias ga 'git add'
-alias gc 'git commit'
-alias gp 'git push'
-alias gl 'git pull'
-alias gco 'git checkout'
-
-# Docker aliases
-alias dps 'docker ps'
-alias di 'docker images'
-alias dc 'docker-compose'
-
-# System aliases
-alias grep 'grep --color=auto'
-alias ports 'lsof -i -P -n | grep LISTEN'
-
-# Abbreviations (Fish-specific)
-abbr gst 'git status'
-abbr gaa 'git add .'
-abbr gcm 'git commit -m'
-abbr gpo 'git push origin'
-abbr glo 'git pull origin'
-abbr dcu 'docker-compose up'
-abbr dcd 'docker-compose down'
-"""
-
-FISH_FUNCTION_LS = """
-function ll --description 'List files in long format'
-    ls -la $argv
-end
-"""
-
-FISH_FUNCTION_GIT_STATUS = """
-function gs --description 'Git status shortcut'
-    git status $argv
-end
-"""
-
-FISH_FUNCTION_DOCKER_PS = """
-function dps --description 'Docker ps shortcut'
-    docker ps $argv
-end
-"""
-
-FISH_FUNCTION_COMPLEX = """
-function mkcd --description 'Create directory and change to it'
-    if test (count $argv) -ne 1
-        echo "Usage: mkcd <directory>"
-        return 1
-    end
-
-    mkdir -p $argv[1]
-    and cd $argv[1]
-end
-"""
 
 # Configuration with LazySloth already installed
 BASH_WITH_LAZYSLOTH = """
@@ -278,12 +207,6 @@ SAMPLE_ALIASES = {
         'command': 'docker ps',
         'shell': 'zsh',
         'source_file': '/home/user/.zshrc',
-        'type': 'alias'
-    },
-    'gc': {
-        'command': 'git commit',
-        'shell': 'fish',
-        'source_file': '/home/user/.config/fish/config.fish',
         'type': 'alias'
     },
     'gco': {

@@ -150,7 +150,7 @@ The `TestEnvironment` class provides utilities for setting up realistic test sce
 def test_example(test_environment):
     # Create shell configs
     test_environment.create_shell_config('bash', 'alias ll="ls -la"')
-    test_environment.create_fish_function('gs', 'git status $argv')
+    test_environment.create_shell_config('zsh', 'alias gs="git status"')
 
     # Test functionality with isolated environment
 ```
@@ -197,7 +197,7 @@ class TestNewCLIFeature:
 
 Sample configurations in `tests/fixtures/sample_configs.py` include:
 
-- Realistic bash/zsh/fish configuration files
+- Realistic bash/zsh configuration files
 - Common aliases and functions
 - Shell configurations with FastParrot already installed
 - Sample statistics and aliases data

@@ -44,7 +44,7 @@ where = ["."]
 include = ["lazysloth*"]
 
 [tool.setuptools.package-data]
-lazysloth = ["shells/*.sh", "shells/*.fish", "shells/*.zsh"]
+lazysloth = ["shells/*.sh", "shells/*.zsh"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

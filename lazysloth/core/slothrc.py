@@ -113,7 +113,5 @@ class SlothRC:
         """Get the source line to add to shell config for the given shell."""
         rc_path = str(self.rc_file)
 
-        if shell == 'fish':
-            return f"source {rc_path}"
-        else:  # bash, zsh
-            return f"[ -f {rc_path} ] && source {rc_path}"
+        # bash, zsh
+        return f"[ -f {rc_path} ] && source {rc_path}"

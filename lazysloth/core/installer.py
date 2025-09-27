@@ -40,8 +40,7 @@ class Installer:
         # Map shell names to our supported shells
         shell_mapping = {
             'bash': 'bash',
-            'zsh': 'zsh',
-            'fish': 'fish'
+            'zsh': 'zsh'
         }
 
         return shell_mapping.get(shell_name, 'bash')
@@ -61,9 +60,6 @@ class Installer:
                 home / '.zsh_profile',
                 home / '.profile'
             ],
-            'fish': [
-                home / '.config' / 'fish' / 'config.fish'
-            ]
         }
 
         return shell_configs.get(shell, [])
@@ -193,19 +189,9 @@ bindkey "^M" lazysloth_widget
 bindkey "^J" lazysloth_widget
 '''
 
-        elif shell == 'fish':
-            return f'''
-# Source LazySloth user aliases
-{slothrc_source}
-
-# LazySloth command monitoring hook
-function lazysloth_preexec --on-event fish_preexec
-    {python_path} -m lazysloth.monitors.hook "$argv" 2>/dev/null || true
-end
-'''
 
         else:
-            raise ValueError(f"Unsupported shell: {shell}")
+            raise ValueError(f"Unsupported shell: {shell}. Only 'bash' and 'zsh' are supported.")
 
     def uninstall(self, shell: str):
         """Remove LazySloth integration from shell configuration."""

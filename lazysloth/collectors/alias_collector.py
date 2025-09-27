@@ -5,18 +5,18 @@ from typing import Dict, List, Optional, Tuple
 from ..core.config import Config
 
 class AliasCollector:
-    """Collects aliases from shell configuration files."""
+    """Collects aliases from bash and zsh shell configuration files."""
 
     def __init__(self):
         self.config = Config()
         self.home = Path.home()
 
     def collect_all(self) -> Dict[str, Dict]:
-        """Collect aliases from all supported shell configurations."""
+        """Collect aliases from all supported shell configurations (bash and zsh)."""
         all_aliases = {}
 
         # Collect from different shell configs
-        for shell in ['bash', 'zsh', 'fish']:
+        for shell in ['bash', 'zsh']:
             aliases = self.collect_from_shell(shell)
             all_aliases.update(aliases)
 
@@ -26,11 +26,11 @@ class AliasCollector:
         return all_aliases
 
     def collect_from_shell(self, shell: str) -> Dict[str, Dict]:
-        """Collect aliases from a specific shell configuration."""
-        if shell == 'fish':
-            return self._collect_fish_aliases()
-        else:
+        """Collect aliases from a specific shell configuration (bash or zsh)."""
+        if shell in ['bash', 'zsh']:
             return self._collect_bash_zsh_aliases(shell)
+        else:
+            raise ValueError(f"Unsupported shell: {shell}. Only 'bash' and 'zsh' are supported.")
 
     def _collect_bash_zsh_aliases(self, shell: str) -> Dict[str, Dict]:
         """Collect aliases from bash/zsh configuration files."""
@@ -43,22 +43,6 @@ class AliasCollector:
 
         return aliases
 
-    def _collect_fish_aliases(self) -> Dict[str, Dict]:
-        """Collect aliases from Fish shell configuration."""
-        aliases = {}
-        fish_config = self.home / '.config' / 'fish' / 'config.fish'
-        fish_functions = self.home / '.config' / 'fish' / 'functions'
-
-        # Parse config.fish for aliases
-        if fish_config.exists():
-            aliases.update(self._parse_fish_config(fish_config))
-
-        # Parse function files
-        if fish_functions.exists() and fish_functions.is_dir():
-            for func_file in fish_functions.glob('*.fish'):
-                aliases.update(self._parse_fish_function(func_file))
-
-        return aliases
 
     def _get_config_files(self, shell: str) -> List[Path]:
         """Get configuration files for a shell."""
@@ -119,76 +103,7 @@ class AliasCollector:
 
         return aliases
 
-    def _parse_fish_config(self, config_file: Path) -> Dict[str, Dict]:
-        """Parse aliases from Fish config.fish."""
-        aliases = {}
 
-        try:
-            with open(config_file, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-
-            # Process line by line to properly handle comments
-            lines = content.split('\n')
-            alias_pattern = r"alias\s+([^\s]+)\s+(['\"]?)([^'\"\n]+)\2"
-
-            for line in lines:
-                # Skip commented lines (lines that start with # after optional whitespace)
-                stripped_line = line.lstrip()
-                if stripped_line.startswith('#'):
-                    continue
-
-                # Skip lines that have text before 'alias' (not pure alias definitions)
-                if not stripped_line.startswith('alias '):
-                    continue
-
-                # Now try to match the alias pattern
-                match = re.search(alias_pattern, line)
-                if match:
-                    alias_name = match.group(1)
-                    alias_command = match.group(3)
-
-                    aliases[alias_name] = {
-                        'command': alias_command,
-                        'shell': 'fish',
-                        'source_file': str(config_file),
-                        'type': 'alias'
-                    }
-
-        except (IOError, UnicodeDecodeError) as e:
-            print(f"Warning: Could not read {config_file}: {e}")
-
-        return aliases
-
-    def _parse_fish_function(self, func_file: Path) -> Dict[str, Dict]:
-        """Parse Fish function file."""
-        aliases = {}
-        func_name = func_file.stem
-
-        try:
-            with open(func_file, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-
-            # Simple heuristic: if function is short and contains a single command,
-            # treat it as an alias-like function
-            lines = [line.strip() for line in content.split('\n') if line.strip()]
-            non_empty_lines = [line for line in lines if not line.startswith('#') and line != 'end']
-
-            if 2 <= len(non_empty_lines) <= 4:  # function declaration + 1-2 commands + end
-                # Extract the main command (usually the second non-empty line)
-                if len(non_empty_lines) >= 2:
-                    main_command = non_empty_lines[1]
-
-                    aliases[func_name] = {
-                        'command': main_command,
-                        'shell': 'fish',
-                        'source_file': str(func_file),
-                        'type': 'function'
-                    }
-
-        except (IOError, UnicodeDecodeError) as e:
-            print(f"Warning: Could not read {func_file}: {e}")
-
-        return aliases
 
     def find_alias_for_command(self, command: str) -> Optional[Tuple[str, Dict]]:
         """Find the best alias for the given command with recursive resolution."""

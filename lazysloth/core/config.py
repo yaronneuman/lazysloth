@@ -49,10 +49,6 @@ class Config:
                     str(home / '.zsh_aliases'),
                     str(home / '.slothrc')
                 ],
-                'fish': [
-                    str(home / '.config/fish/config.fish'),
-                    str(home / '.slothrc')
-                ]
             }
         }
 

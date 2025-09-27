@@ -4,7 +4,7 @@ A CLI-first application that helps developers and terminal users improve their p
 
 ## Features
 
-- **Multi-shell support**: Works with Bash, Zsh, and Fish shells
+- **Multi-shell support**: Works with Bash and Zsh shells
 - **Alias collection**: Automatically discovers existing aliases from your shell configuration
 - **Smart suggestions**: Learn when to use aliases through intelligent command monitoring
 - **Muscle memory training**: Get reminded about available shortcuts to build better habits
@@ -30,7 +30,6 @@ sloth install
 # Or specify a shell explicitly
 sloth install --shell bash
 sloth install --shell zsh
-sloth install --shell fish
 ```
 
 Then restart your shell or source your configuration:
@@ -42,8 +41,6 @@ source ~/.bashrc
 # For zsh
 source ~/.zshrc
 
-# For fish
-source ~/.config/fish/config.fish
 ```
 
 ## Usage

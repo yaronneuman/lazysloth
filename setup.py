@@ -41,6 +41,6 @@ setup(
     },
     include_package_data=True,
     package_data={
-        "lazysloth": ["shells/*.sh", "shells/*.fish", "shells/*.zsh"],
+        "lazysloth": ["shells/*.sh", "shells/*.zsh"],
     },
 )

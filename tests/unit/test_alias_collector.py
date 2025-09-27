@@ -61,43 +61,7 @@ class TestAliasCollector:
             assert 'dps' in aliases
             assert aliases['dps']['command'] == 'docker ps'
 
-    def test_parse_fish_config(self, mock_home_dir, sample_shell_configs):
-        """Test parsing aliases from fish configuration file."""
-        with patch.object(Path, 'home', return_value=mock_home_dir):
-            collector = AliasCollector()
-            collector.home = mock_home_dir
 
-            # Create fish config file
-            fish_config = mock_home_dir / '.config' / 'fish' / 'config.fish'
-            fish_config.parent.mkdir(parents=True, exist_ok=True)
-            fish_config.write_text(sample_shell_configs['fish_config'])
-
-            aliases = collector._parse_fish_config(fish_config)
-
-            assert 'll' in aliases
-            assert aliases['ll']['command'] == 'ls -la'
-            assert aliases['ll']['shell'] == 'fish'
-
-            assert 'gs' in aliases
-            assert aliases['gs']['command'] == 'git status'
-
-    def test_parse_fish_function(self, mock_home_dir, sample_shell_configs):
-        """Test parsing fish function files."""
-        with patch.object(Path, 'home', return_value=mock_home_dir):
-            collector = AliasCollector()
-            collector.home = mock_home_dir
-
-            # Create fish function file
-            func_file = mock_home_dir / '.config' / 'fish' / 'functions' / 'll.fish'
-            func_file.parent.mkdir(parents=True, exist_ok=True)
-            func_file.write_text(sample_shell_configs['fish_function_ll'])
-
-            aliases = collector._parse_fish_function(func_file)
-
-            assert 'll' in aliases
-            assert aliases['ll']['command'] == 'ls -la $argv'
-            assert aliases['ll']['shell'] == 'fish'
-            assert aliases['ll']['type'] == 'function'
 
     def test_collect_from_bash(self, mock_home_dir, sample_shell_configs):
         """Test collecting aliases from bash configuration."""
@@ -115,28 +79,6 @@ class TestAliasCollector:
             assert 'gs' in aliases
             assert aliases['ll']['command'] == 'ls -la'
 
-    def test_collect_from_fish(self, mock_home_dir, sample_shell_configs):
-        """Test collecting aliases from fish configuration."""
-        with patch.object(Path, 'home', return_value=mock_home_dir):
-            collector = AliasCollector()
-            collector.home = mock_home_dir
-
-            # Create fish config and functions
-            fish_config = mock_home_dir / '.config' / 'fish' / 'config.fish'
-            fish_config.parent.mkdir(parents=True, exist_ok=True)
-            fish_config.write_text(sample_shell_configs['fish_config'])
-
-            functions_dir = mock_home_dir / '.config' / 'fish' / 'functions'
-            functions_dir.mkdir(exist_ok=True)
-
-            (functions_dir / 'll.fish').write_text(sample_shell_configs['fish_function_ll'])
-            (functions_dir / 'gs.fish').write_text(sample_shell_configs['fish_function_gs'])
-
-            aliases = collector.collect_from_shell('fish')
-
-            # Should get aliases from both config and functions
-            assert len(aliases) >= 2
-            assert 'll' in aliases
 
     def test_find_alias_for_command_exact_match(self, isolated_config, sample_aliases):
         """Test finding alias for exact command match."""

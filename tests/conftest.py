@@ -29,8 +29,6 @@ def mock_home_dir(tmp_path):
     home_dir.mkdir()
 
     # Create shell config directories
-    (home_dir / ".config" / "fish").mkdir(parents=True)
-    (home_dir / ".config" / "fish" / "functions").mkdir(parents=True)
 
     return home_dir
 
@@ -71,12 +69,6 @@ def sample_aliases():
             'source_file': '/home/user/.zshrc',
             'type': 'alias'
         },
-        'gst': {
-            'command': 'git status',
-            'shell': 'fish',
-            'source_file': '/home/user/.config/fish/config.fish',
-            'type': 'alias'
-        }
     }
 
 
@@ -114,29 +106,6 @@ alias ll="ls -la"
 alias tmux='tmux -2'
 alias vim='nvim'
 ''',
-        'fish_config': '''
-# Fish configuration
-set -gx PATH $HOME/bin $PATH
-
-# Aliases
-alias ll 'ls -la'
-alias gs 'git status'
-alias gc 'git commit'
-
-# Abbreviations (Fish-specific)
-abbr gp 'git push'
-abbr gd 'git diff'
-''',
-        'fish_function_ll': '''
-function ll --description 'List files in long format'
-    ls -la $argv
-end
-''',
-        'fish_function_gs': '''
-function gs --description 'Git status shortcut'
-    git status $argv
-end
-'''
     }
 
 
@@ -151,20 +120,10 @@ def populated_shell_configs(mock_home_dir, sample_shell_configs):
     zshrc = mock_home_dir / '.zshrc'
     zshrc.write_text(sample_shell_configs['zshrc'])
 
-    # Create fish config
-    fish_config = mock_home_dir / '.config' / 'fish' / 'config.fish'
-    fish_config.write_text(sample_shell_configs['fish_config'])
-
-    # Create fish functions
-    functions_dir = mock_home_dir / '.config' / 'fish' / 'functions'
-    (functions_dir / 'll.fish').write_text(sample_shell_configs['fish_function_ll'])
-    (functions_dir / 'gs.fish').write_text(sample_shell_configs['fish_function_gs'])
 
     return {
         'bashrc': bashrc,
         'zshrc': zshrc,
-        'fish_config': fish_config,
-        'fish_functions': functions_dir
     }
 
 
@@ -226,8 +185,6 @@ class TestEnvironment:
         """Set up the basic directory structure."""
         self.home_dir.mkdir()
         self.config_dir.mkdir()
-        (self.home_dir / ".config" / "fish").mkdir(parents=True)
-        (self.home_dir / ".config" / "fish" / "functions").mkdir(parents=True)
 
     def create_shell_config(self, shell: str, content: str):
         """Create a shell configuration file with the given content."""
@@ -235,19 +192,12 @@ class TestEnvironment:
             config_file = self.home_dir / '.bashrc'
         elif shell == 'zsh':
             config_file = self.home_dir / '.zshrc'
-        elif shell == 'fish':
-            config_file = self.home_dir / '.config' / 'fish' / 'config.fish'
         else:
             raise ValueError(f"Unknown shell: {shell}")
 
         config_file.write_text(content)
         return config_file
 
-    def create_fish_function(self, name: str, content: str):
-        """Create a fish function file."""
-        func_file = self.home_dir / '.config' / 'fish' / 'functions' / f'{name}.fish'
-        func_file.write_text(content)
-        return func_file
 
 
 @pytest.fixture

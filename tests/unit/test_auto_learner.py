@@ -33,8 +33,7 @@ class TestAutoLearner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
                     'bash': ['/home/user/.bashrc'],
-                    'zsh': ['/home/user/.zshrc', '/home/user/.zsh_aliases'],
-                    'fish': ['/home/user/.config/fish/config.fish']
+                    'zsh': ['/home/user/.zshrc', '/home/user/.zsh_aliases']
                 })
 
                 learner = AutoLearner()
@@ -42,10 +41,8 @@ class TestAutoLearner:
 
                 assert 'bash' in result
                 assert 'zsh' in result
-                assert 'fish' in result
                 assert len(result['bash']) == 1
                 assert len(result['zsh']) == 2
-                assert len(result['fish']) == 1
 
     def test_get_monitored_files_specific_shell(self, isolated_config):
         """Test getting monitored files for specific shell."""

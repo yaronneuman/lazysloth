@@ -31,9 +31,6 @@ class TestInstaller:
         with patch.dict(os.environ, {'SHELL': '/usr/bin/zsh'}):
             assert installer.detect_shell() == 'zsh'
 
-        # Test fish
-        with patch.dict(os.environ, {'SHELL': '/usr/local/bin/fish'}):
-            assert installer.detect_shell() == 'fish'
 
         # Test unknown shell defaults to bash
         with patch.dict(os.environ, {'SHELL': '/bin/unknownshell'}):
@@ -70,12 +67,6 @@ class TestInstaller:
             ]
             assert zsh_files == expected_zsh
 
-            # Test fish config files
-            fish_files = installer.get_shell_config_files('fish')
-            expected_fish = [
-                mock_home_dir / '.config' / 'fish' / 'config.fish'
-            ]
-            assert fish_files == expected_fish
 
             # Test unknown shell
             unknown_files = installer.get_shell_config_files('unknown')
@@ -119,14 +110,6 @@ class TestInstaller:
         assert 'bindkey "^M" lazysloth_widget' in code
         assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
-    def test_generate_integration_code_fish(self, mock_shutil_which):
-        """Test generating fish integration code."""
-        installer = Installer()
-
-        code = installer._generate_integration_code('fish')
-
-        assert 'function lazysloth_preexec --on-event fish_preexec' in code
-        assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
     def test_generate_integration_code_unsupported_shell(self):
         """Test generating integration code for unsupported shell."""
