@@ -66,7 +66,7 @@ def install(shell, force):
         else:
             click.echo("   No aliases found to learn")
 
-        click.echo("Restart your shell or run 'source ~/.bashrc' (or equivalent) to activate.")
+        click.echo("Restart your shell or run 'source ~/.bash_profile' (or equivalent) to activate.")
     except Exception as e:
         click.echo(f"❌ Installation failed: {e}", err=True)
         sys.exit(1)
@@ -87,7 +87,7 @@ def uninstall(shell):
         click.echo(f"✅ LazySloth uninstalled from {shell}")
         click.echo("💡 Configuration settings preserved in ~/.config/lazysloth/config.yaml")
         click.echo("💡 User aliases preserved in ~/.slothrc (will not be used until reinstalled)")
-        click.echo("Restart your shell or run 'source ~/.bashrc' (or equivalent) to deactivate.")
+        click.echo("Restart your shell or run 'source ~/.bash_profile' (or equivalent) to deactivate.")
     except Exception as e:
         click.echo(f"❌ Uninstallation failed: {e}", err=True)
         sys.exit(1)

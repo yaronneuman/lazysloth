@@ -38,7 +38,7 @@ Then restart your shell or source your configuration:
 
 ```bash
 # For bash
-source ~/.bashrc
+source ~/.bash_profile
 
 # For zsh
 source ~/.zshrc
@@ -83,7 +83,7 @@ sloth status
    - **Zsh**: Creates a custom ZLE widget that intercepts commands on Enter/Return
 
 2. **Alias Discovery**: Automatically scans and learns from your shell configuration files:
-   - `.bashrc`, `.bash_aliases`, `.zshrc`, `.zsh_aliases`
+   - `.bash_profile`, `.bash_aliases`, `.zshrc`, `.zsh_aliases`
    - Custom `.slothrc` file for user-defined aliases
 
 3. **Command Monitoring**: Tracks command usage and matches against known aliases:
@@ -112,7 +112,7 @@ monitoring:
 
 monitored_files:
   bash:
-    - ~/.bashrc
+    - ~/.bash_profile
     - ~/.bash_aliases
     - ~/.slothrc
   zsh:
@@ -148,7 +148,7 @@ $ sloth alias list
 📁 .slothrc:
   gs → git status --porcelain (user_defined)
 
-📁 /home/user/.bashrc:
+📁 /home/user/.bash_profile:
   ll → ls -la (bash)
   ..  → cd .. (bash)
 

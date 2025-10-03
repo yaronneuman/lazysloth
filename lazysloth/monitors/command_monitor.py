@@ -49,7 +49,6 @@ class CommandMonitor:
 
         if command_base in ignored_commands:
             return None
-
         # Check if user is already using an optimal alias
         if self._is_using_optimal_alias(command):
             return None
@@ -163,7 +162,6 @@ class CommandMonitor:
         notice_threshold = self.config.get('monitoring.notice_threshold', 1)
         blocking_threshold = self.config.get('monitoring.blocking_threshold', 3)
         blocking_enabled = self.config.get('monitoring.blocking_enabled', False)
-
         count = command_stats['count']
         if not existing_alias:
             return None

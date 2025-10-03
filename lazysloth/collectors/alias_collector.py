@@ -48,7 +48,7 @@ class AliasCollector:
         """Get configuration files for a shell."""
         config_files = {
             'bash': [
-                self.home / '.bashrc',
+                self.home / '.bash_profile',
                 self.home / '.bash_profile',
                 self.home / '.bash_aliases',
                 self.home / '.profile'

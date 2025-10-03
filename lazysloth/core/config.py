@@ -40,7 +40,7 @@ class Config:
             },
             'monitored_files': {
                 'bash': [
-                    str(home / '.bashrc'),
+                    str(home / '.bash_profile'),
                     str(home / '.bash_aliases'),
                     str(home / '.slothrc')
                 ],

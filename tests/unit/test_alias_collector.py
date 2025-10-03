@@ -29,10 +29,10 @@ class TestAliasCollector:
             collector.home = mock_home_dir
 
             # Create a bash config file
-            bashrc = mock_home_dir / '.bashrc'
-            bashrc.write_text(sample_shell_configs['bashrc'])
+            bash_profile = mock_home_dir / '.bash_profile'
+            bash_profile.write_text(sample_shell_configs['bash_profile'])
 
-            aliases = collector._parse_bash_zsh_aliases(bashrc, 'bash')
+            aliases = collector._parse_bash_zsh_aliases(bash_profile, 'bash')
 
             assert 'll' in aliases
             assert aliases['ll']['command'] == 'ls -la'
@@ -70,8 +70,8 @@ class TestAliasCollector:
             collector.home = mock_home_dir
 
             # Create bash config
-            bashrc = mock_home_dir / '.bashrc'
-            bashrc.write_text(sample_shell_configs['bashrc'])
+            bash_profile = mock_home_dir / '.bash_profile'
+            bash_profile.write_text(sample_shell_configs['bash_profile'])
 
             aliases = collector.collect_from_shell('bash')
 
@@ -162,8 +162,8 @@ class TestAliasCollector:
                 collector.home = mock_home_dir
 
                 # Create some config files
-                bashrc = mock_home_dir / '.bashrc'
-                bashrc.write_text(sample_shell_configs['bashrc'])
+                bash_profile = mock_home_dir / '.bash_profile'
+                bash_profile.write_text(sample_shell_configs['bash_profile'])
 
                 # Run collect_all
                 result = collector.collect_all()
@@ -183,7 +183,7 @@ class TestAliasCollector:
             # Test bash config files
             bash_files = collector._get_config_files('bash')
             expected_bash = [
-                mock_home_dir / '.bashrc',
+                mock_home_dir / '.bash_profile',
                 mock_home_dir / '.bash_profile',
                 mock_home_dir / '.bash_aliases',
                 mock_home_dir / '.profile'
@@ -211,7 +211,7 @@ class TestAliasCollector:
             collector.home = mock_home_dir
 
             # Create a file that will cause UnicodeDecodeError
-            bad_file = mock_home_dir / '.bashrc'
+            bad_file = mock_home_dir / '.bash_profile'
             bad_file.write_bytes(b'\xff\xfe\x00\x00')  # Invalid UTF-8
 
             # Should not raise exception

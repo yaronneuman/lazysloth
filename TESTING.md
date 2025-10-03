@@ -107,13 +107,13 @@ def test_config_isolation(isolated_config, tmp_path):
 ```python
 def test_shell_isolation(mock_home_dir, sample_shell_configs):
     # Shell configs created in temporary directory
-    bashrc = mock_home_dir / '.bashrc'
-    bashrc.write_text(sample_shell_configs['bashrc'])
+    bash_profile = mock_home_dir / '.bash_profile'
+    bash_profile.write_text(sample_shell_configs['bash_profile'])
 
     # Collector operates on test files only
     collector = AliasCollector()
-    aliases = collector._parse_bash_zsh_aliases(bashrc, 'bash')
-    # User's real .bashrc is never touched
+    aliases = collector._parse_bash_zsh_aliases(bash_profile, 'bash')
+    # User's real .bash_profile is never touched
 ```
 
 ### Statistics Isolation
@@ -185,7 +185,7 @@ The framework includes realistic sample configurations:
 
 ### What Tests Never Touch
 ✅ User's actual home directory files
-✅ Real shell configuration files (.bashrc, .zshrc, etc.)
+✅ Real shell configuration files (.bash_profile, .zshrc, etc.)
 ✅ Actual FastParrot configuration and statistics
 ✅ System-wide installations or modifications
 

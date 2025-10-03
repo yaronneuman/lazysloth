@@ -32,7 +32,7 @@ class TestAutoLearner:
             with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
-                    'bash': ['/home/user/.bashrc'],
+                    'bash': ['/home/user/.bash_profile'],
                     'zsh': ['/home/user/.zshrc', '/home/user/.zsh_aliases']
                 })
 
@@ -50,7 +50,7 @@ class TestAutoLearner:
             with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
-                    'bash': ['/home/user/.bashrc'],
+                    'bash': ['/home/user/.bash_profile'],
                     'zsh': ['/home/user/.zshrc']
                 })
 
@@ -136,7 +136,7 @@ class TestAutoLearner:
         with patch('lazysloth.core.auto_learner.Config') as mock_config:
             with patch('lazysloth.core.auto_learner.AliasCollector') as mock_collector:
                 # Create test file
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.bashrc', delete=False) as f:
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.bash_profile', delete=False) as f:
                     f.write("alias test_alias='echo test'\n")
                     f.write("alias another='ls -la'\n")
                     f.flush()
@@ -186,7 +186,7 @@ class TestAutoLearner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(side_effect=lambda key, default=None: {
                     'monitored_files': {
-                        'bash': ['/fake/bashrc'],
+                        'bash': ['/fake/bash_profile'],
                         'zsh': ['/fake/zshrc']
                     }
                 }.get(key, default))

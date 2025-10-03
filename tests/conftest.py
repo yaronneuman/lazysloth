@@ -60,7 +60,7 @@ def sample_aliases():
         'll': {
             'command': 'ls -la',
             'shell': 'bash',
-            'source_file': '/home/user/.bashrc',
+            'source_file': '/home/user/.bash_profile',
             'type': 'alias'
         },
         'dps': {
@@ -76,7 +76,7 @@ def sample_aliases():
 def sample_shell_configs():
     """Provide sample shell configuration file contents."""
     return {
-        'bashrc': '''
+        'bash_profile': '''
 # Basic bash configuration
 export PATH=$HOME/bin:$PATH
 
@@ -113,8 +113,8 @@ alias vim='nvim'
 def populated_shell_configs(mock_home_dir, sample_shell_configs):
     """Create shell config files with sample content."""
     # Create bash config
-    bashrc = mock_home_dir / '.bashrc'
-    bashrc.write_text(sample_shell_configs['bashrc'])
+    bash_profile = mock_home_dir / '.bash_profile'
+    bash_profile.write_text(sample_shell_configs['bash_profile'])
 
     # Create zsh config
     zshrc = mock_home_dir / '.zshrc'
@@ -122,7 +122,7 @@ def populated_shell_configs(mock_home_dir, sample_shell_configs):
 
 
     return {
-        'bashrc': bashrc,
+        'bash_profile': bash_profile,
         'zshrc': zshrc,
     }
 
@@ -189,7 +189,7 @@ class TestEnvironment:
     def create_shell_config(self, shell: str, content: str):
         """Create a shell configuration file with the given content."""
         if shell == 'bash':
-            config_file = self.home_dir / '.bashrc'
+            config_file = self.home_dir / '.bash_profile'
         elif shell == 'zsh':
             config_file = self.home_dir / '.zshrc'
         else:

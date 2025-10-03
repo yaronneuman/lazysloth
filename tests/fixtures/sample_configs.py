@@ -3,7 +3,7 @@ Sample configuration files for testing.
 """
 
 BASH_CONFIG = """
-# Sample .bashrc configuration
+# Sample .bash_profile configuration
 export PATH=$HOME/bin:$PATH
 
 # Basic aliases
@@ -134,7 +134,7 @@ alias topmem="ps aux --sort=-%mem | head"
 
 # Configuration with LazySloth already installed
 BASH_WITH_LAZYSLOTH = """
-# Sample .bashrc configuration
+# Sample .bash_profile configuration
 export PATH=$HOME/bin:$PATH
 
 # Basic aliases
@@ -200,7 +200,7 @@ SAMPLE_ALIASES = {
     'll': {
         'command': 'ls -la',
         'shell': 'bash',
-        'source_file': '/home/user/.bashrc',
+        'source_file': '/home/user/.bash_profile',
         'type': 'alias'
     },
     'dps': {
@@ -212,7 +212,7 @@ SAMPLE_ALIASES = {
     'gco': {
         'command': 'git checkout',
         'shell': 'bash',
-        'source_file': '/home/user/.bashrc',
+        'source_file': '/home/user/.bash_profile',
         'type': 'alias'
     }
 }

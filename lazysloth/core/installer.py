@@ -51,7 +51,7 @@ class Installer:
 
         shell_configs = {
             'bash': [
-                home / '.bashrc',
+                home / '.bash_profile',
                 home / '.bash_profile',
                 home / '.profile'
             ],
@@ -134,13 +134,41 @@ class Installer:
 # Source LazySloth user aliases
 {slothrc_source}
 
-# LazySloth command monitoring hook
+# Download and source bash-preexec if not already installed
+if [[ ! -f ~/.bash-preexec.sh ]]; then
+    curl -s https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
+fi
+[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+
+# LazySloth command monitoring and blocking function
 lazysloth_preexec() {{
-    if [ -n "${{BASH_COMMAND}}" ]; then
-        {python_path} -m lazysloth.monitors.hook "${{BASH_COMMAND}}" 2>/dev/null || true
+    local cmd_line="$1"
+
+    # Skip empty commands
+    [[ -z "$cmd_line" || "$cmd_line" =~ ^[[:space:]]*$ ]] && return
+
+    # Skip LazySloth itself
+    [[ "$cmd_line" =~ ^[[:space:]]*lazysloth ]] && return
+
+    # Skip pyenv internals
+    case "$cmd_line" in
+        _pyenv_virtualenv_hook*|pyenv\\ init*|pyenv\\ virtualenv-init*)
+            return
+            ;;
+    esac
+
+    # Call Python checker
+    {python_path} -m lazysloth.monitors.hook "$cmd_line"
+    local exit_code=$?
+
+    if [[ $exit_code -ne 0 ]]; then
+        # Kill the command immediately
+        kill -INT $$
     fi
 }}
-trap 'lazysloth_preexec' DEBUG
+
+# Register the function with bash-preexec
+preexec_functions+=(lazysloth_preexec)
 '''
 
         elif shell == 'zsh':

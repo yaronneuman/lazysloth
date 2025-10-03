@@ -301,7 +301,7 @@ class TestCLI:
         # Mock learner
         mock_learner = MagicMock()
         mock_learner.get_monitored_files.return_value = {
-            'bash': ['/home/user/.bashrc'],
+            'bash': ['/home/user/.bash_profile'],
             'zsh': ['/home/user/.zshrc']
         }
         mock_config.get_aliases_data.return_value = {
@@ -375,7 +375,7 @@ class TestCLI:
         # Mock config with multiple aliases from different sources
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {
-            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bashrc'},
+            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bash_profile'},
             'll': {'command': 'ls -la', 'shell': 'zsh', 'source_file': '.zshrc'},
             'gc': {'command': 'git commit', 'shell': 'user_defined', 'source_file': '.slothrc'},
             'gp': {'command': 'git push', 'shell': 'bash', 'source_file': '.bash_aliases'}
@@ -386,7 +386,7 @@ class TestCLI:
         result = runner.invoke(alias, ['list'])
 
         assert result.exit_code == 0
-        assert '.bashrc:' in result.output
+        assert '.bash_profile:' in result.output
         assert '.zshrc:' in result.output
         assert '.slothrc:' in result.output
         assert '.bash_aliases:' in result.output
@@ -465,10 +465,10 @@ class TestCLI:
     @patch('lazysloth.cli.Config')
     def test_alias_rm_readonly_source(self, mock_config_class):
         """Test alias rm command when alias is from read-only source."""
-        # Mock config with alias from .bashrc (read-only)
+        # Mock config with alias from .bash_profile (read-only)
         mock_config = MagicMock()
         mock_config.get_aliases_data.return_value = {
-            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bashrc'}
+            'gs': {'command': 'git status', 'shell': 'bash', 'source_file': '.bash_profile'}
         }
         mock_config_class.return_value = mock_config
 
@@ -476,7 +476,7 @@ class TestCLI:
         result = runner.invoke(alias, ['rm', 'gs'])
 
         assert result.exit_code == 1
-        assert "❌ Cannot remove alias 'gs' - it's from .bashrc" in result.output
+        assert "❌ Cannot remove alias 'gs' - it's from .bash_profile" in result.output
         assert "Only aliases added via 'sloth alias add' can be removed" in result.output
 
     @patch('lazysloth.cli.Config')
@@ -541,10 +541,10 @@ class TestCLIWithRealFiles:
                     result = runner.invoke(install, ['--shell', 'bash'])
                     assert result.exit_code == 0
 
-                    # Verify bashrc was created and contains integration
-                    bashrc = home_dir / '.bashrc'
-                    assert bashrc.exists()
-                    content = bashrc.read_text()
+                    # Verify bash_profile was created and contains integration
+                    bash_profile = home_dir / '.bash_profile'
+                    assert bash_profile.exists()
+                    content = bash_profile.read_text()
                     assert '# LazySloth integration' in content
                     assert 'lazysloth_preexec()' in content
 
@@ -553,7 +553,7 @@ class TestCLIWithRealFiles:
                     assert result.exit_code == 0
 
                     # Verify integration was removed
-                    content = bashrc.read_text()
+                    content = bash_profile.read_text()
                     assert '# LazySloth integration' not in content
                     assert 'lazysloth_preexec()' not in content
 

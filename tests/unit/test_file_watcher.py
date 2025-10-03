@@ -127,7 +127,7 @@ class TestFileWatcher:
             with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
-                    'bash': ['/fake/bashrc'],
+                    'bash': ['/fake/bash_profile'],
                     'zsh': ['/fake/zshrc']
                 })
 
@@ -140,7 +140,7 @@ class TestFileWatcher:
                 watcher = FileWatcher()
 
                 # Mock file changes detected
-                with patch.object(watcher, '_get_changed_files', return_value={'/fake/bashrc'}):
+                with patch.object(watcher, '_get_changed_files', return_value={'/fake/bash_profile'}):
                     with patch.object(watcher, '_update_last_check') as mock_update:
                         result = watcher.check_and_relearn_if_needed()
 
@@ -154,7 +154,7 @@ class TestFileWatcher:
             with patch('lazysloth.core.file_watcher.AutoLearner') as mock_learner:
                 mock_config.return_value = isolated_config
                 isolated_config.get = MagicMock(return_value={
-                    'bash': ['/fake/bashrc']
+                    'bash': ['/fake/bash_profile']
                 })
 
                 mock_learner_instance = MagicMock()

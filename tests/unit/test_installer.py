@@ -52,7 +52,7 @@ class TestInstaller:
             # Test bash config files
             bash_files = installer.get_shell_config_files('bash')
             expected_bash = [
-                mock_home_dir / '.bashrc',
+                mock_home_dir / '.bash_profile',
                 mock_home_dir / '.bash_profile',
                 mock_home_dir / '.profile'
             ]
@@ -77,13 +77,13 @@ class TestInstaller:
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create .bashrc
-            bashrc = mock_home_dir / '.bashrc'
-            bashrc.touch()
+            # Create .bash_profile
+            bash_profile = mock_home_dir / '.bash_profile'
+            bash_profile.touch()
 
-            # Should find existing .bashrc
+            # Should find existing .bash_profile
             config_file = installer.find_existing_config('bash')
-            assert config_file == bashrc
+            assert config_file == bash_profile
 
             # Test when no config exists, should return first option
             config_file = installer.find_existing_config('zsh')
@@ -127,11 +127,11 @@ class TestInstaller:
             installer.install('bash')
 
             # Verify config file was created
-            bashrc = mock_home_dir / '.bashrc'
-            assert bashrc.exists()
+            bash_profile = mock_home_dir / '.bash_profile'
+            assert bash_profile.exists()
 
             # Verify integration was added
-            content = bashrc.read_text()
+            content = bash_profile.read_text()
             assert '# LazySloth integration' in content
             assert 'lazysloth_preexec()' in content
             assert '# End LazySloth integration' in content
@@ -141,16 +141,16 @@ class TestInstaller:
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create existing bashrc
-            bashrc = mock_home_dir / '.bashrc'
+            # Create existing bash_profile
+            bash_profile = mock_home_dir / '.bash_profile'
             original_content = "# Existing config\nexport PATH=$HOME/bin:$PATH\n"
-            bashrc.write_text(original_content)
+            bash_profile.write_text(original_content)
 
             # Install LazySloth
             installer.install('bash')
 
             # Verify original content is preserved and integration is added
-            content = bashrc.read_text()
+            content = bash_profile.read_text()
             assert original_content in content
             assert '# LazySloth integration' in content
             assert 'lazysloth_preexec()' in content
@@ -160,9 +160,9 @@ class TestInstaller:
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create bashrc with existing integration
-            bashrc = mock_home_dir / '.bashrc'
-            bashrc.write_text("# LazySloth integration\necho 'already installed'\n")
+            # Create bash_profile with existing integration
+            bash_profile = mock_home_dir / '.bash_profile'
+            bash_profile.write_text("# LazySloth integration\necho 'already installed'\n")
 
             # Should raise error when trying to install again
             with pytest.raises(ValueError, match="LazySloth is already installed"):
@@ -173,12 +173,12 @@ class TestInstaller:
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create bashrc with existing integration
-            bashrc = mock_home_dir / '.bashrc'
+            # Create bash_profile with existing integration
+            bash_profile = mock_home_dir / '.bash_profile'
             old_integration = """# LazySloth integration
 old integration code
 # End LazySloth integration"""
-            bashrc.write_text(old_integration)
+            bash_profile.write_text(old_integration)
 
             # Mock uninstall method
             installer.uninstall = MagicMock()
@@ -204,8 +204,8 @@ old integration code
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create bashrc with LazySloth integration
-            bashrc = mock_home_dir / '.bashrc'
+            # Create bash_profile with LazySloth integration
+            bash_profile = mock_home_dir / '.bash_profile'
             content_with_integration = """# Original content
 export PATH=$HOME/bin:$PATH
 
@@ -218,13 +218,13 @@ lazysloth_preexec() {
 # More original content
 alias ll='ls -la'
 """
-            bashrc.write_text(content_with_integration)
+            bash_profile.write_text(content_with_integration)
 
             # Uninstall LazySloth
             installer.uninstall('bash')
 
             # Verify integration was removed but original content remains
-            content = bashrc.read_text()
+            content = bash_profile.read_text()
             assert '# LazySloth integration' not in content
             assert 'lazysloth_preexec' not in content
             assert '# End LazySloth integration' not in content
@@ -244,8 +244,8 @@ alias ll='ls -la'
         installer = Installer()
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
-            # Create bashrc with multiple integration blocks
-            bashrc = mock_home_dir / '.bashrc'
+            # Create bash_profile with multiple integration blocks
+            bash_profile = mock_home_dir / '.bash_profile'
             content_with_multiple = """# Original content
 
 # LazySloth integration
@@ -260,13 +260,13 @@ old integration 2
 
 # More content
 """
-            bashrc.write_text(content_with_multiple)
+            bash_profile.write_text(content_with_multiple)
 
             # Uninstall LazySloth
             installer.uninstall('bash')
 
             # Verify all integration blocks were removed
-            content = bashrc.read_text()
+            content = bash_profile.read_text()
             assert '# LazySloth integration' not in content
             assert 'old integration 1' not in content
             assert 'old integration 2' not in content
@@ -319,9 +319,9 @@ old integration 2
 
         with patch.object(Path, 'home', return_value=mock_home_dir):
             with patch.object(installer, '_clean_lazysloth_data') as mock_cleanup:
-                # Create a bashrc file to uninstall from
-                bashrc = mock_home_dir / '.bashrc'
-                bashrc.write_text('# LazySloth integration\ntest\n# End LazySloth integration\n')
+                # Create a bash_profile file to uninstall from
+                bash_profile = mock_home_dir / '.bash_profile'
+                bash_profile.write_text('# LazySloth integration\ntest\n# End LazySloth integration\n')
 
                 installer.uninstall('bash')
 
@@ -337,9 +337,9 @@ old integration 2
         with patch.object(Path, 'home', return_value=mock_home_dir):
             with patch.object(installer, '_clean_lazysloth_data') as mock_cleanup:
                 with patch('lazysloth.core.slothrc.SlothRC'):
-                    # Create a bashrc file
-                    bashrc = mock_home_dir / '.bashrc'
-                    bashrc.write_text('# Some existing content\n')
+                    # Create a bash_profile file
+                    bash_profile = mock_home_dir / '.bash_profile'
+                    bash_profile.write_text('# Some existing content\n')
 
                     # Install with force=True should call cleanup
                     installer.install('bash', force=True)
