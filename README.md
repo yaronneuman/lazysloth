@@ -13,7 +13,23 @@ A CLI-first application that learns from your shell configuration and helps you 
 
 ## Installation
 
-### From Source
+### From GitHub (Recommended)
+
+```bash
+# Install latest version
+pip install git+https://github.com/yaronneuman/lazysloth.git
+
+# Install specific version
+pip install git+https://github.com/yaronneuman/lazysloth.git@v1.0.0
+```
+
+### From Release Assets
+
+1. Go to [Releases](https://github.com/yaronneuman/lazysloth/releases)
+2. Download the latest `.whl` file
+3. Install: `pip install lazysloth-1.0.0-py3-none-any.whl`
+
+### Development Installation
 
 ```bash
 git clone https://github.com/yaronneuman/lazysloth.git

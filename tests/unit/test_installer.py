@@ -96,7 +96,8 @@ class TestInstaller:
         code = installer._generate_integration_code('bash')
 
         assert 'lazysloth_preexec()' in code
-        assert 'trap \'lazysloth_preexec\' DEBUG' in code
+        assert 'bash-preexec' in code
+        assert 'preexec_functions+=(lazysloth_preexec)' in code
         assert '/usr/bin/python3 -m lazysloth.monitors.hook' in code
 
     def test_generate_integration_code_zsh(self, mock_shutil_which):
