@@ -61,7 +61,7 @@ class FileWatcher:
 
             return False
 
-        except Exception as e:
+        except Exception:
             # Silently fail - don't break shell if monitoring fails
             return False
 

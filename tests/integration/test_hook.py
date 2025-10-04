@@ -92,22 +92,21 @@ class TestHook:
                     raise SystemExit(code)
 
                 with patch.object(sys, "exit", side_effect=track_exit):
-                    with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
-                        try:
-                            hook.main()
-                        except SystemExit:
-                            pass  # Expected
+                    try:
+                        hook.main()
+                    except SystemExit:
+                        pass  # Expected
 
-                        # Check results
-                        assert (
-                            len(exit_codes) == 1
-                        ), f"Expected 1 exit call, got {len(exit_codes)}: {exit_codes}"
-                        assert (
-                            exit_codes[0] == 1
-                        ), f"Expected exit code 1, got {exit_codes[0]}"
+                    # Check results
+                    assert (
+                        len(exit_codes) == 1
+                    ), f"Expected 1 exit call, got {len(exit_codes)}: {exit_codes}"
+                    assert (
+                        exit_codes[0] == 1
+                    ), f"Expected exit code 1, got {exit_codes[0]}"
 
-                        # Verify command was blocked based on exit code
-                        # Content is less important than behavior
+                    # Verify command was blocked based on exit code
+                    # Content is less important than behavior
 
     def test_hook_main_command_with_multiple_args(self):
         """Test hook main with command that has multiple arguments."""

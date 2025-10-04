@@ -2,9 +2,7 @@
 Unit tests for the FileWatcher class.
 """
 
-import json
 import tempfile
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -31,104 +29,100 @@ class TestFileWatcher:
     def test_get_changed_files_new_file(self, isolated_config):
         """Test detecting new files as changed."""
         with patch("lazysloth.core.file_watcher.Config") as mock_config:
-            with patch("lazysloth.core.file_watcher.AutoLearner") as mock_learner:
-                mock_config.return_value = isolated_config
+            mock_config.return_value = isolated_config
 
-                # Create temporary file
-                with tempfile.NamedTemporaryFile(delete=False) as f:
-                    f.write(b"test content")
-                    test_file = f.name
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(b"test content")
+                test_file = f.name
 
-                try:
-                    watcher = FileWatcher()
+            try:
+                watcher = FileWatcher()
 
-                    # Mock no previous mtimes (first run)
-                    with patch.object(watcher, "_load_file_mtimes", return_value={}):
-                        with patch.object(watcher, "_save_file_mtimes") as mock_save:
-                            changed = watcher._get_changed_files([test_file])
+                # Mock no previous mtimes (first run)
+                with patch.object(watcher, "_load_file_mtimes", return_value={}):
+                    with patch.object(watcher, "_save_file_mtimes") as mock_save:
+                        changed = watcher._get_changed_files([test_file])
 
-                            assert test_file in changed
-                            mock_save.assert_called_once()
+                        assert test_file in changed
+                        mock_save.assert_called_once()
 
-                finally:
-                    Path(test_file).unlink()
+            finally:
+                Path(test_file).unlink()
 
     def test_get_changed_files_modified_file(self, isolated_config):
         """Test detecting modified files."""
         with patch("lazysloth.core.file_watcher.Config") as mock_config:
-            with patch("lazysloth.core.file_watcher.AutoLearner") as mock_learner:
-                mock_config.return_value = isolated_config
+            mock_config.return_value = isolated_config
 
-                # Create temporary file
-                with tempfile.NamedTemporaryFile(delete=False) as f:
-                    f.write(b"original content")
-                    test_file = f.name
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(b"original content")
+                test_file = f.name
 
-                try:
-                    watcher = FileWatcher()
+            try:
+                watcher = FileWatcher()
 
-                    # Get initial mtime
-                    initial_mtime = Path(test_file).stat().st_mtime
+                # Get initial mtime
+                initial_mtime = Path(test_file).stat().st_mtime
 
-                    # Mock previous mtime (older)
-                    old_mtime = initial_mtime - 100
-                    with patch.object(
-                        watcher,
-                        "_load_file_mtimes",
-                        return_value={test_file: old_mtime},
-                    ):
-                        with patch.object(watcher, "_save_file_mtimes") as mock_save:
-                            changed = watcher._get_changed_files([test_file])
+                # Mock previous mtime (older)
+                old_mtime = initial_mtime - 100
+                with patch.object(
+                    watcher,
+                    "_load_file_mtimes",
+                    return_value={test_file: old_mtime},
+                ):
+                    with patch.object(watcher, "_save_file_mtimes") as mock_save:
+                        changed = watcher._get_changed_files([test_file])
 
-                            assert test_file in changed
-                            mock_save.assert_called_once()
+                        assert test_file in changed
+                        mock_save.assert_called_once()
 
-                finally:
-                    Path(test_file).unlink()
+            finally:
+                Path(test_file).unlink()
 
     def test_get_changed_files_unchanged_file(self, isolated_config):
         """Test that unchanged files are not detected."""
         with patch("lazysloth.core.file_watcher.Config") as mock_config:
-            with patch("lazysloth.core.file_watcher.AutoLearner") as mock_learner:
-                mock_config.return_value = isolated_config
+            mock_config.return_value = isolated_config
 
-                # Create temporary file
-                with tempfile.NamedTemporaryFile(delete=False) as f:
-                    f.write(b"content")
-                    test_file = f.name
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(delete=False) as f:
+                f.write(b"content")
+                test_file = f.name
 
-                try:
-                    watcher = FileWatcher()
+            try:
+                watcher = FileWatcher()
 
-                    # Get current mtime
-                    current_mtime = Path(test_file).stat().st_mtime
+                # Get current mtime
+                current_mtime = Path(test_file).stat().st_mtime
 
-                    # Mock same mtime (unchanged)
-                    with patch.object(
-                        watcher,
-                        "_load_file_mtimes",
-                        return_value={test_file: current_mtime},
-                    ):
-                        with patch.object(watcher, "_save_file_mtimes") as mock_save:
-                            changed = watcher._get_changed_files([test_file])
+                # Mock same mtime (unchanged)
+                with patch.object(
+                    watcher,
+                    "_load_file_mtimes",
+                    return_value={test_file: current_mtime},
+                ):
+                    with patch.object(watcher, "_save_file_mtimes") as mock_save:
+                        changed = watcher._get_changed_files([test_file])
 
-                            assert test_file not in changed
-                            mock_save.assert_called_once()
+                        assert test_file not in changed
+                        mock_save.assert_called_once()
 
-                finally:
-                    Path(test_file).unlink()
+            finally:
+                Path(test_file).unlink()
 
     def test_check_and_relearn_if_needed_no_files(self, isolated_config):
         """Test behavior when no monitored files configured."""
         with patch("lazysloth.core.file_watcher.Config") as mock_config:
-            with patch("lazysloth.core.file_watcher.AutoLearner") as mock_learner:
-                mock_config.return_value = isolated_config
-                isolated_config.get = MagicMock(return_value={})
+            mock_config.return_value = isolated_config
+            isolated_config.get = MagicMock(return_value={})
 
-                watcher = FileWatcher()
-                result = watcher.check_and_relearn_if_needed()
+            watcher = FileWatcher()
+            result = watcher.check_and_relearn_if_needed()
 
-                assert result is False
+            assert result is False
 
     def test_check_and_relearn_if_needed_with_changes(self, isolated_config):
         """Test relearning when files have changed."""

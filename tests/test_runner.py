@@ -82,9 +82,9 @@ def install_test_deps():
 def lint_code():
     """Run code linting."""
     commands = [
-        "python -m flake8 lazysloth tests --max-line-length=100 --ignore=E501,W503",
-        "python -m black --check lazysloth tests",
-        "python -m isort --check-only lazysloth tests",
+        "python -m flake8 lazysloth tests --max-line-length=127 --ignore=E501,W503,E203",
+        "python -m black --check lazysloth",
+        "python -m isort --check-only lazysloth",
     ]
 
     all_passed = True

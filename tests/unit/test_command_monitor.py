@@ -2,13 +2,11 @@
 Unit tests for the CommandMonitor class.
 """
 
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lazysloth.monitors.command_monitor import (CommandMonitor, MonitorAction,
-                                                MonitorResult)
+from lazysloth.monitors.command_monitor import CommandMonitor
 
 
 @pytest.mark.unit
@@ -30,39 +28,33 @@ class TestCommandMonitor:
     def test_record_command_disabled_monitoring(self, isolated_config):
         """Test that monitoring can be disabled."""
         with patch("lazysloth.monitors.command_monitor.Config") as mock_config:
-            with patch(
-                "lazysloth.monitors.command_monitor.AliasCollector"
-            ) as mock_collector:
-                mock_config.return_value = isolated_config
-                isolated_config.get = MagicMock(
-                    side_effect=lambda key, default=None: {
-                        "monitoring.enabled": False
-                    }.get(key, default)
+            mock_config.return_value = isolated_config
+            isolated_config.get = MagicMock(
+                side_effect=lambda key, default=None: {"monitoring.enabled": False}.get(
+                    key, default
                 )
+            )
 
-                monitor = CommandMonitor()
-                result = monitor.record_command("git status")
+            monitor = CommandMonitor()
+            result = monitor.record_command("git status")
 
-                assert result is None
+            assert result is None
 
     def test_record_command_ignored_command(self, isolated_config):
         """Test that ignored commands are not monitored."""
         with patch("lazysloth.monitors.command_monitor.Config") as mock_config:
-            with patch(
-                "lazysloth.monitors.command_monitor.AliasCollector"
-            ) as mock_collector:
-                mock_config.return_value = isolated_config
-                isolated_config.get = MagicMock(
-                    side_effect=lambda key, default=None: {
-                        "monitoring.enabled": True,
-                        "monitoring.ignored_commands": ["git"],
-                    }.get(key, default)
-                )
+            mock_config.return_value = isolated_config
+            isolated_config.get = MagicMock(
+                side_effect=lambda key, default=None: {
+                    "monitoring.enabled": True,
+                    "monitoring.ignored_commands": ["git"],
+                }.get(key, default)
+            )
 
-                monitor = CommandMonitor()
-                result = monitor.record_command("git status")
+            monitor = CommandMonitor()
+            result = monitor.record_command("git status")
 
-                assert result is None
+            assert result is None
 
     def test_record_command_no_alias(self, isolated_config):
         """Test recording command that has no alias."""

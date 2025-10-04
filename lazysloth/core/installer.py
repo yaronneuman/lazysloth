@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 
 class Installer:
@@ -130,7 +130,8 @@ class Installer:
 
 # Download and source bash-preexec if not already installed
 if [[ ! -f ~/.bash-preexec.sh ]]; then
-    curl -s https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh -o ~/.bash-preexec.sh
+    curl -s https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh \\
+        -o ~/.bash-preexec.sh
 fi
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
 

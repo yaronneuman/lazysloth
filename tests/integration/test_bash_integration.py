@@ -2,12 +2,9 @@
 Integration tests specifically for bash integration functionality.
 """
 
-import os
-import shutil
-import subprocess
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
@@ -241,7 +238,6 @@ preexec_functions+=(lazysloth_preexec)
         """End-to-end test: install, create alias, test hook simulation."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             home_dir = Path(tmp_dir)
-            config_dir = home_dir / ".config" / "lazysloth"
 
             with patch.object(Path, "home", return_value=home_dir):
                 with patch("shutil.which", return_value="/usr/bin/python3"):

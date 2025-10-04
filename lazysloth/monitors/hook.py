@@ -4,11 +4,10 @@ Command hook module - called by shell integration to monitor commands.
 This is invoked before each command execution.
 """
 
-import os
 import sys
 
 from ..core.file_watcher import FileWatcher
-from .command_monitor import CommandMonitor, MonitorAction
+from .command_monitor import CommandMonitor
 
 
 def main():

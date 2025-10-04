@@ -185,7 +185,7 @@ class TestCLI:
         assert "Monitoring action set to: notice" in result.output
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_add_success(self, mock_slothrc_class, mock_config_class):
         """Test alias add command successful execution."""
         # Mock config
@@ -207,7 +207,7 @@ class TestCLI:
         mock_slothrc.add_alias.assert_called_once_with("gs", "git status")
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_add_with_complex_command(
         self, mock_slothrc_class, mock_config_class
     ):
@@ -233,7 +233,7 @@ class TestCLI:
         )
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_add_overwrite_existing(self, mock_slothrc_class, mock_config_class):
         """Test alias add command when alias already exists."""
         # Mock config with existing alias
@@ -255,7 +255,7 @@ class TestCLI:
         assert "✅ Alias 'gs' already exists with the same command" in result.output
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_add_overwrite_different(self, mock_slothrc_class, mock_config_class):
         """Test alias add command when alias exists with different command."""
         # Mock config with existing alias
@@ -448,7 +448,7 @@ class TestCLI:
         assert "❌ Failed to list aliases: Config error" in result.output
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_rm_success(self, mock_slothrc_class, mock_config_class):
         """Test alias rm command successful removal."""
         # Mock config with alias from .slothrc
@@ -514,7 +514,7 @@ class TestCLI:
         )
 
     @patch("lazysloth.cli.Config")
-    @patch("lazysloth.core.slothrc.SlothRC")
+    @patch("lazysloth.cli.SlothRC")
     def test_alias_rm_slothrc_not_found(self, mock_slothrc_class, mock_config_class):
         """Test alias rm command when alias exists in config but not in .slothrc file."""
         # Mock config with alias from .slothrc

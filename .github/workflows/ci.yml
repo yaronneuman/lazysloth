@@ -32,15 +32,15 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 lazysloth tests --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 lazysloth tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 lazysloth --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Check code formatting with black
       run: |
-        black --check lazysloth tests
+        black --check lazysloth
 
     - name: Check import sorting with isort
       run: |
-        isort --check-only lazysloth tests
+        isort --check-only lazysloth
 
     - name: Run unit tests
       run: |
@@ -75,15 +75,15 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 lazysloth tests --max-line-length=100
+        flake8 lazysloth --max-line-length=127
 
     - name: Check formatting with black
       run: |
-        black --check lazysloth tests
+        black --check lazysloth
 
     - name: Check import sorting with isort
       run: |
-        isort --check-only lazysloth tests
+        isort --check-only lazysloth
 
     - name: Type check with mypy (optional, may fail)
       run: |

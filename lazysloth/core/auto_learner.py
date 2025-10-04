@@ -3,7 +3,7 @@ Automatic alias learning system that monitors bash and zsh shell configuration f
 """
 
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List
 
 from ..collectors.alias_collector import AliasCollector
 from .config import Config

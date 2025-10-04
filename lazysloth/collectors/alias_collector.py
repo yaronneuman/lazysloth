@@ -162,7 +162,8 @@ class AliasCollector:
         max_depth: int = 10,
         expanded_aliases: set = None,
     ) -> str:
-        """Recursively expand aliases in a command to get the full form, tracking already expanded aliases."""
+        """Recursively expand aliases in a command to get the full form,
+        tracking already expanded aliases."""
         if max_depth <= 0:
             return command  # Prevent infinite recursion
 

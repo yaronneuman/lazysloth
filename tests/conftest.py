@@ -2,15 +2,10 @@
 Test configuration and shared fixtures for FastParrot tests.
 """
 
-import os
-import shutil
-import tempfile
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
-import yaml
 
 from lazysloth.core.config import Config
 

@@ -2,9 +2,8 @@
 SlothRC management - handles ~/.slothrc file for user-defined aliases.
 """
 
-import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 
 class SlothRC:

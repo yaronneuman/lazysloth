@@ -163,7 +163,7 @@ def add(alias_name, command):
 
         click.echo(f"✅ Added alias: {alias_name} -> {command}")
         click.echo(
-            f"💡 Alias added to ~/.slothrc and will be available in new shell sessions"
+            "💡 Alias added to ~/.slothrc and will be available in new shell sessions"
         )
 
     except Exception as e:
@@ -234,8 +234,6 @@ def rm(alias_name):
             sys.exit(1)
 
         # Remove from .slothrc file
-        from .core.slothrc import SlothRC
-
         slothrc = SlothRC()
         if slothrc.remove_alias(alias_name):
             # Remove from LazySloth's database
@@ -243,7 +241,7 @@ def rm(alias_name):
             config.save_aliases_data(aliases)
 
             click.echo(f"✅ Removed alias: {alias_name}")
-            click.echo(f"💡 Alias removed from ~/.slothrc")
+            click.echo("💡 Alias removed from ~/.slothrc")
         else:
             click.echo(f"❌ Alias '{alias_name}' not found in ~/.slothrc")
 
@@ -258,8 +256,8 @@ def monitor():
     pass
 
 
-@monitor.command()
-def status():
+@monitor.command(name="status")
+def monitor_status():
     """Show current monitoring settings."""
     config = Config()
     current_enabled = config.get("monitoring.enabled", True)
@@ -286,7 +284,8 @@ def status():
 @click.option(
     "--action",
     type=click.Choice(["none", "notice", "block"]),
-    help="Set monitoring action: none (no action), notice (show suggestions), block (prevent command execution)",
+    help="Set monitoring action: none (no action), notice (show suggestions), "
+    "block (prevent command execution)",
 )
 @click.option("--notice-threshold", type=int, help="Threshold for showing notices")
 @click.option("--block-threshold", type=int, help="Threshold for blocking commands")
@@ -296,10 +295,10 @@ def config(enabled, action, notice_threshold, block_threshold):
 
     # If no options provided, show current settings and help
     if (
-            enabled is None
-            and action is None
-            and notice_threshold is None
-            and block_threshold is None
+        enabled is None
+        and action is None
+        and notice_threshold is None
+        and block_threshold is None
     ):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
@@ -307,8 +306,8 @@ def config(enabled, action, notice_threshold, block_threshold):
 
     if enabled is not None:
         config_obj.set("monitoring.enabled", enabled)
-        status = "enabled" if enabled else "disabled"
-        click.echo(f"Command monitoring {status}")
+        status_text = "enabled" if enabled else "disabled"
+        click.echo(f"Command monitoring {status_text}")
 
     if action is not None:
         if action == "none":
@@ -424,7 +423,7 @@ def status():
 
     click.echo(f"  Notice threshold: {notice_threshold}")
     click.echo(f"  Block threshold: {blocking_threshold}")
-    click.echo(f"  Tracking: only commands with aliases")
+    click.echo("  Tracking: only commands with aliases")
 
     # Show alias info
     aliases = config.get_aliases_data()

@@ -191,50 +191,50 @@ bindkey "^J" lazysloth_widget
 
 # Sample aliases data for testing
 SAMPLE_ALIASES = {
-    'gs': {
-        'command': 'git status',
-        'shell': 'zsh',
-        'source_file': '/home/user/.zshrc',
-        'type': 'alias'
+    "gs": {
+        "command": "git status",
+        "shell": "zsh",
+        "source_file": "/home/user/.zshrc",
+        "type": "alias",
     },
-    'll': {
-        'command': 'ls -la',
-        'shell': 'bash',
-        'source_file': '/home/user/.bash_profile',
-        'type': 'alias'
+    "ll": {
+        "command": "ls -la",
+        "shell": "bash",
+        "source_file": "/home/user/.bash_profile",
+        "type": "alias",
     },
-    'dps': {
-        'command': 'docker ps',
-        'shell': 'zsh',
-        'source_file': '/home/user/.zshrc',
-        'type': 'alias'
+    "dps": {
+        "command": "docker ps",
+        "shell": "zsh",
+        "source_file": "/home/user/.zshrc",
+        "type": "alias",
     },
-    'gco': {
-        'command': 'git checkout',
-        'shell': 'bash',
-        'source_file': '/home/user/.bash_profile',
-        'type': 'alias'
-    }
+    "gco": {
+        "command": "git checkout",
+        "shell": "bash",
+        "source_file": "/home/user/.bash_profile",
+        "type": "alias",
+    },
 }
 
 # Sample statistics data for testing
 SAMPLE_STATS = {
-    'gs': {
-        'count': 5,
-        'first_seen': '2024-01-01T10:00:00',
-        'last_seen': '2024-01-01T15:00:00',
-        'alias_command': 'git status'
+    "gs": {
+        "count": 5,
+        "first_seen": "2024-01-01T10:00:00",
+        "last_seen": "2024-01-01T15:00:00",
+        "alias_command": "git status",
     },
-    'll': {
-        'count': 2,
-        'first_seen': '2024-01-01T11:00:00',
-        'last_seen': '2024-01-01T14:00:00',
-        'alias_command': 'ls -la'
+    "ll": {
+        "count": 2,
+        "first_seen": "2024-01-01T11:00:00",
+        "last_seen": "2024-01-01T14:00:00",
+        "alias_command": "ls -la",
     },
-    'dps': {
-        'count': 1,
-        'first_seen': '2024-01-01T12:00:00',
-        'last_seen': '2024-01-01T12:00:00',
-        'alias_command': 'docker ps'
-    }
+    "dps": {
+        "count": 1,
+        "first_seen": "2024-01-01T12:00:00",
+        "last_seen": "2024-01-01T12:00:00",
+        "alias_command": "docker ps",
+    },
 }
