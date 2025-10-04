@@ -1,45 +1,50 @@
 #!/usr/bin/env python3
 
-import click
 import sys
 from pathlib import Path
+
+import click
+
+from .core.auto_learner import AutoLearner
 from .core.config import Config
 from .core.installer import Installer
-from .core.auto_learner import AutoLearner
+from .core.slothrc import SlothRC
+
 
 @click.group()
 @click.version_option()
 def main():
     """LazySloth: Learn and share terminal shortcuts and aliases.
 
-    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⠖⢶⣦⣄⡀⠀⢀⣴⣶⠟⠓⣶⣦⣄⡀⠀⠀⠀⠀⠀⣀⣤⣤⣀⡀⠀⠀⢠⣤⣤⣄⡀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⣿⡄⠀⣿⠈⢻⣤⣾⠏⠀⠀⠀⠈⢷⡈⠻⣦⡀⠀⣠⣾⠟⠋⠀⠙⣿⣶⣴⠏⢠⣿⠋⠉⣷⡄⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠁⠈⣿⠀⣿⠃⢸⣿⡏⠀⠀⠀⠀⠀⢸⡻⣦⣹⣇⢠⣿⠃⠀⠀⠀⠀⠘⣇⠙⣧⡿⢁⣴⠞⠛⢿⡆⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⠃⠀⠀⢹⣷⣿⣰⡿⢿⡇⠀⠀⠀⠀⠀⢸⢻⣜⣷⣿⣿⡇⠀⠀⠀⠀⠀⠀⣟⣷⣹⣁⡞⠁⠀⠀⠘⣿⡄⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⣿⡟⠀⠀⠀⠈⠉⢹⡟⠁⢸⡇⠀⠀⠀⠀⠀⢸⡆⠙⠃⢀⣿⠀⠀⠀⠀⠀⠀⠀⣿⠛⣿⠛⠀⠀⠀⠀⠀⢹⡇⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠈⣇⠀⢸⡇⠀⠀⠀⠀⠀⠀⣇⠀⠀⠘⣿⡄⠀⠀⠀⠀⠀⠀⢹⡀⢸⡇⠀⠀⠀⠀⠀⠘⣿⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⣿⡀⢸⣷⠀⠀⠀⠀⠀⠀⢻⡆⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠸⣧⢸⣿⠀⠀⠀⠀⠀⠀⢿⡆
-⠀⠀⠀⠀⣠⣤⣶⣶⣿⠿⢶⣶⣤⣄⠀⠀⠘⡇⠀⢻⡄⠀⠀⠀⠀⠀⠀⢳⡀⠀⢻⣧⠀⠀⠀⠀⠀⠀⠀⢿⣾⣿⠀⠀⠀⠀⠀⠀⢸⡇
-⠀⠀⣴⣿⢟⣯⣭⡎⠀⠀⢀⣤⡟⠻⣷⣄⠀⢹⡄⢸⣇⠀⠀⠀⠀⠀⠀⠈⣷⡀⠘⣿⡄⠀⠀⠀⠀⠀⠀⠀⢿⡏⠀⠀⠀⠀⠀⠀⢸⣧
-⢀⣾⢏⠞⠉⠀⠀⠀⠀⠀⠻⢿⣿⣀⠼⢿⣶⣶⣷⡀⣿⡀⠀⠀⠀⠀⠀⠀⢸⣇⠀⢻⣷⠀⠀⠀⠀⠀⠀⠀⠈⢿⣆⠀⠀⠀⠀⠀⢸⣿
-⣸⡷⠋⠀⠀⠀⠀⣠⣶⣿⠦⣤⠄⠀⠀⠀⣿⣿⣦⡀⣿⠇⠀⠀⠀⠀⠀⠀⠀⢻⡀⠈⣿⡆⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⠀⢸⣿
-⣿⢁⡴⣾⣿⡆⠀⠙⢛⣡⡾⠋⠀⠀⠀⢠⠇⠈⠛⣿⠏⠀⠀⠀⠀⠀⠀⠰⣄⠸⡗⠛⢻⣿⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⣼⣿
-⢿⡞⠀⠈⢉⡇⠉⠉⠉⠉⠀⠀⠀⠀⣠⠊⠀⢀⡾⠋⠀⠀⠀⠀⠀⢀⡀⠀⣿⠳⠇⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡄⠀⠀⣿⡇
-⠸⣷⠀⢠⠎⠀⠀⠀⠀⠀⠀⣀⠴⠋⠀⠖⠚⠋⠀⠀⠀⠀⠀⢀⡄⢸⣷⡀⣿⠀⠀⠀⣸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢰⣿⠇
-⠀⢻⣷⣯⣀⣀⣀⣀⣠⠤⠚⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠛⠿⣷⠇⠀⠀⢠⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⣾⡟⠀
-⠀⠈⢻⣷⡉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠃⠀
-⠀⠀⠀⢻⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⠃⠀⠀
-⠀⠀⠀⠀⠙⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⠇⠀⠀⠀
-⠀⠀⠀⠀⠀⠈⠻⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⠃⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣾⠟⠁⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⢿⣿⣶⣦⣄⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣠⣴⣶⣿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⡻⠿⠿⣿⣿⣷⣶⣶⣶⣶⣶⣶⣶⣶⣶⣿⣿⠿⠿⢛⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣶⠖⢶⣦⣄⡀⠀⢀⣴⣶⠟⠓⣶⣦⣄⡀⠀⠀⠀⠀⠀⣀⣤⣤⣀⡀⠀⠀⢠⣤⣤⣄⡀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⣿⡄⠀⣿⠈⢻⣤⣾⠏⠀⠀⠀⠈⢷⡈⠻⣦⡀⠀⣠⣾⠟⠋⠀⠙⣿⣶⣴⠏⢠⣿⠋⠉⣷⡄⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠁⠈⣿⠀⣿⠃⢸⣿⡏⠀⠀⠀⠀⠀⢸⡻⣦⣹⣇⢠⣿⠃⠀⠀⠀⠀⠘⣇⠙⣧⡿⢁⣴⠞⠛⢿⡆⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⠃⠀⠀⢹⣷⣿⣰⡿⢿⡇⠀⠀⠀⠀⠀⢸⢻⣜⣷⣿⣿⡇⠀⠀⠀⠀⠀⠀⣟⣷⣹⣁⡞⠁⠀⠀⠘⣿⡄⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⣿⡟⠀⠀⠀⠈⠉⢹⡟⠁⢸⡇⠀⠀⠀⠀⠀⢸⡆⠙⠃⢀⣿⠀⠀⠀⠀⠀⠀⠀⣿⠛⣿⠛⠀⠀⠀⠀⠀⢹⡇⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠈⣇⠀⢸⡇⠀⠀⠀⠀⠀⠀⣇⠀⠀⠘⣿⡄⠀⠀⠀⠀⠀⠀⢹⡀⢸⡇⠀⠀⠀⠀⠀⠘⣿⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⣿⡀⢸⣷⠀⠀⠀⠀⠀⠀⢻⡆⠀⠀⣿⡇⠀⠀⠀⠀⠀⠀⠸⣧⢸⣿⠀⠀⠀⠀⠀⠀⢿⡆
+    ⠀⠀⠀⠀⣠⣤⣶⣶⣿⠿⢶⣶⣤⣄⠀⠀⠘⡇⠀⢻⡄⠀⠀⠀⠀⠀⠀⢳⡀⠀⢻⣧⠀⠀⠀⠀⠀⠀⠀⢿⣾⣿⠀⠀⠀⠀⠀⠀⢸⡇
+    ⠀⠀⣴⣿⢟⣯⣭⡎⠀⠀⢀⣤⡟⠻⣷⣄⠀⢹⡄⢸⣇⠀⠀⠀⠀⠀⠀⠈⣷⡀⠘⣿⡄⠀⠀⠀⠀⠀⠀⠀⢿⡏⠀⠀⠀⠀⠀⠀⢸⣧
+    ⢀⣾⢏⠞⠉⠀⠀⠀⠀⠀⠻⢿⣿⣀⠼⢿⣶⣶⣷⡀⣿⡀⠀⠀⠀⠀⠀⠀⢸⣇⠀⢻⣷⠀⠀⠀⠀⠀⠀⠀⠈⢿⣆⠀⠀⠀⠀⠀⢸⣿
+    ⣸⡷⠋⠀⠀⠀⠀⣠⣶⣿⠦⣤⠄⠀⠀⠀⣿⣿⣦⡀⣿⠇⠀⠀⠀⠀⠀⠀⠀⢻⡀⠈⣿⡆⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⠀⢸⣿
+    ⣿⢁⡴⣾⣿⡆⠀⠙⢛⣡⡾⠋⠀⠀⠀⢠⠇⠈⠛⣿⠏⠀⠀⠀⠀⠀⠀⠰⣄⠸⡗⠛⢻⣿⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣆⠀⠀⠀⣼⣿
+    ⢿⡞⠀⠈⢉⡇⠉⠉⠉⠉⠀⠀⠀⠀⣠⠊⠀⢀⡾⠋⠀⠀⠀⠀⠀⢀⡀⠀⣿⠳⠇⠀⢸⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡄⠀⠀⣿⡇
+    ⠸⣷⠀⢠⠎⠀⠀⠀⠀⠀⠀⣀⠴⠋⠀⠖⠚⠋⠀⠀⠀⠀⠀⢀⡄⢸⣷⡀⣿⠀⠀⠀⣸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⢰⣿⠇
+    ⠀⢻⣷⣯⣀⣀⣀⣀⣠⠤⠚⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠛⠿⣷⠇⠀⠀⢠⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⣾⡟⠀
+    ⠀⠈⢻⣷⡉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⡿⠃⠀
+    ⠀⠀⠀⢻⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⠃⠀⠀
+    ⠀⠀⠀⠀⠙⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⠇⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠈⠻⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡿⠃⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠈⠛⢿⣿⣶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣾⠟⠁⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠻⢿⣿⣶⣦⣄⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣠⣴⣶⣿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠛⡻⠿⠿⣿⣿⣷⣶⣶⣶⣶⣶⣶⣶⣶⣶⣿⣿⠿⠿⢛⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     """
     pass
 
+
 @main.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Target shell')
-@click.option('--force', is_flag=True, help='Force reinstallation')
+@click.option("--shell", type=click.Choice(["bash", "zsh"]), help="Target shell")
+@click.option("--force", is_flag=True, help="Force reinstallation")
 def install(shell, force):
     """Install LazySloth shell integration."""
     installer = Installer()
@@ -50,7 +55,9 @@ def install(shell, force):
 
     try:
         if force:
-            click.echo("🧹 Cleaning previous LazySloth data (aliases, stats, file tracking)...")
+            click.echo(
+                "🧹 Cleaning previous LazySloth data (aliases, stats, file tracking)..."
+            )
 
         installer.install(shell, force=force)
         click.echo(f"✅ LazySloth installed for {shell}")
@@ -60,19 +67,22 @@ def install(shell, force):
         click.echo(f"🎓 Learning aliases from {shell} configuration files...")
         results = learner.learn_from_monitored_files(shell)
 
-        total_learned = results['learned'] + results['updated']
+        total_learned = results["learned"] + results["updated"]
         if total_learned > 0:
             click.echo(f"   📚 Learned {total_learned} aliases")
         else:
             click.echo("   No aliases found to learn")
 
-        click.echo("Restart your shell or run 'source ~/.bash_profile' (or equivalent) to activate.")
+        click.echo(
+            "Restart your shell or run 'source ~/.bash_profile' (or equivalent) to activate."
+        )
     except Exception as e:
         click.echo(f"❌ Installation failed: {e}", err=True)
         sys.exit(1)
 
+
 @main.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Target shell')
+@click.option("--shell", type=click.Choice(["bash", "zsh"]), help="Target shell")
 def uninstall(shell):
     """Uninstall LazySloth shell integration."""
     installer = Installer()
@@ -82,15 +92,24 @@ def uninstall(shell):
         click.echo(f"Detected shell: {shell}")
 
     try:
-        click.echo("🧹 Removing LazySloth integration and cleaning data (aliases, stats, file tracking)...")
+        click.echo(
+            "🧹 Removing LazySloth integration and cleaning data (aliases, stats, file tracking)..."
+        )
         installer.uninstall(shell)
         click.echo(f"✅ LazySloth uninstalled from {shell}")
-        click.echo("💡 Configuration settings preserved in ~/.config/lazysloth/config.yaml")
-        click.echo("💡 User aliases preserved in ~/.slothrc (will not be used until reinstalled)")
-        click.echo("Restart your shell or run 'source ~/.bash_profile' (or equivalent) to deactivate.")
+        click.echo(
+            "💡 Configuration settings preserved in ~/.config/lazysloth/config.yaml"
+        )
+        click.echo(
+            "💡 User aliases preserved in ~/.slothrc (will not be used until reinstalled)"
+        )
+        click.echo(
+            "Restart your shell or run 'source ~/.bash_profile' (or equivalent) to deactivate."
+        )
     except Exception as e:
         click.echo(f"❌ Uninstallation failed: {e}", err=True)
         sys.exit(1)
+
 
 @main.group()
 def alias():
@@ -99,8 +118,8 @@ def alias():
 
 
 @alias.command()
-@click.argument('alias_name', required=True)
-@click.argument('command', required=True)
+@click.argument("alias_name", required=True)
+@click.argument("command", required=True)
 def add(alias_name, command):
     """Add a new alias. Usage: sloth alias add <alias> "command"
 
@@ -116,32 +135,36 @@ def add(alias_name, command):
         # Check if alias already exists in LazySloth's database
         aliases = config.get_aliases_data()
         if alias_name in aliases:
-            existing_command = aliases[alias_name].get('command', '')
+            existing_command = aliases[alias_name].get("command", "")
             if existing_command == command:
-                click.echo(f"✅ Alias '{alias_name}' already exists with the same command")
+                click.echo(
+                    f"✅ Alias '{alias_name}' already exists with the same command"
+                )
                 return
             else:
-                click.echo(f"⚠️  Alias '{alias_name}' already exists with command: {existing_command}")
+                click.echo(
+                    f"⚠️  Alias '{alias_name}' already exists with command: {existing_command}"
+                )
                 if not click.confirm("Do you want to overwrite it?"):
                     click.echo("Operation cancelled")
                     return
 
         # Add the new alias to LazySloth's database
         aliases[alias_name] = {
-            'command': command,
-            'shell': 'user_defined',
-            'source_file': '.slothrc',
-            'type': 'alias'
+            "command": command,
+            "shell": "user_defined",
+            "source_file": ".slothrc",
+            "type": "alias",
         }
         config.save_aliases_data(aliases)
 
-        # Add the alias to .slothrc file
-        from .core.slothrc import SlothRC
         slothrc = SlothRC()
         slothrc.add_alias(alias_name, command)
 
         click.echo(f"✅ Added alias: {alias_name} -> {command}")
-        click.echo(f"💡 Alias added to ~/.slothrc and will be available in new shell sessions")
+        click.echo(
+            f"💡 Alias added to ~/.slothrc and will be available in new shell sessions"
+        )
 
     except Exception as e:
         click.echo(f"❌ Failed to add alias: {e}", err=True)
@@ -162,7 +185,7 @@ def list():
         # Group aliases by source file
         by_source = {}
         for name, data in aliases.items():
-            source = data.get('source_file', 'unknown')
+            source = data.get("source_file", "unknown")
             if source not in by_source:
                 by_source[source] = []
             by_source[source].append((name, data))
@@ -171,8 +194,8 @@ def list():
         for source_file in sorted(by_source.keys()):
             click.echo(f"\n📁 {source_file}:")
             for alias_name, alias_data in sorted(by_source[source_file]):
-                command = alias_data.get('command', '')
-                shell = alias_data.get('shell', 'unknown')
+                command = alias_data.get("command", "")
+                shell = alias_data.get("shell", "unknown")
                 click.echo(f"  {alias_name} → {command} ({shell})")
 
     except Exception as e:
@@ -181,7 +204,7 @@ def list():
 
 
 @alias.command()
-@click.argument('alias_name', required=True)
+@click.argument("alias_name", required=True)
 def rm(alias_name):
     """Remove an alias from ~/.slothrc file.
 
@@ -200,16 +223,19 @@ def rm(alias_name):
             sys.exit(1)
 
         alias_data = aliases[alias_name]
-        source_file = alias_data.get('source_file', '')
+        source_file = alias_data.get("source_file", "")
 
         # Only allow removal of aliases from .slothrc
-        if source_file != '.slothrc':
-            click.echo(f"❌ Cannot remove alias '{alias_name}' - it's from {source_file}")
+        if source_file != ".slothrc":
+            click.echo(
+                f"❌ Cannot remove alias '{alias_name}' - it's from {source_file}"
+            )
             click.echo("💡 Only aliases added via 'sloth alias add' can be removed")
             sys.exit(1)
 
         # Remove from .slothrc file
         from .core.slothrc import SlothRC
+
         slothrc = SlothRC()
         if slothrc.remove_alias(alias_name):
             # Remove from LazySloth's database
@@ -231,14 +257,15 @@ def monitor():
     """Configure command monitoring and manage monitored files."""
     pass
 
+
 @monitor.command()
 def status():
     """Show current monitoring settings."""
     config = Config()
-    current_enabled = config.get('monitoring.enabled', True)
-    current_blocking = config.get('monitoring.blocking_enabled', False)
-    current_notice = config.get('monitoring.notice_threshold', 1)
-    current_block = config.get('monitoring.blocking_threshold', 5)
+    current_enabled = config.get("monitoring.enabled", True)
+    current_blocking = config.get("monitoring.blocking_enabled", False)
+    current_notice = config.get("monitoring.notice_threshold", 1)
+    current_block = config.get("monitoring.blocking_threshold", 5)
 
     if not current_enabled:
         current_action = "none"
@@ -253,51 +280,68 @@ def status():
     click.echo(f"  Notice threshold: {current_notice}")
     click.echo(f"  Block threshold: {current_block}")
 
+
 @monitor.command()
-@click.option('--enabled', type=bool, help='Enable or disable monitoring (true/false)')
-@click.option('--action', type=click.Choice(['none', 'notice', 'block']), help='Set monitoring action: none (no action), notice (show suggestions), block (prevent command execution)')
-@click.option('--notice-threshold', type=int, help='Threshold for showing notices')
-@click.option('--block-threshold', type=int, help='Threshold for blocking commands')
+@click.option("--enabled", type=bool, help="Enable or disable monitoring (true/false)")
+@click.option(
+    "--action",
+    type=click.Choice(["none", "notice", "block"]),
+    help="Set monitoring action: none (no action), notice (show suggestions), block (prevent command execution)",
+)
+@click.option("--notice-threshold", type=int, help="Threshold for showing notices")
+@click.option("--block-threshold", type=int, help="Threshold for blocking commands")
 def config(enabled, action, notice_threshold, block_threshold):
     """Configure command monitoring settings."""
     config_obj = Config()
 
     # If no options provided, show current settings and help
-    if enabled is None and action is None and notice_threshold is None and block_threshold is None:
+    if (
+            enabled is None
+            and action is None
+            and notice_threshold is None
+            and block_threshold is None
+    ):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
         ctx.exit()
 
     if enabled is not None:
-        config_obj.set('monitoring.enabled', enabled)
+        config_obj.set("monitoring.enabled", enabled)
         status = "enabled" if enabled else "disabled"
         click.echo(f"Command monitoring {status}")
 
     if action is not None:
-        if action == 'none':
-            config_obj.set('monitoring.blocking_enabled', False)
+        if action == "none":
+            config_obj.set("monitoring.blocking_enabled", False)
             click.echo("Monitoring action set to: none (no action taken)")
-        elif action == 'notice':
-            config_obj.set('monitoring.blocking_enabled', False)
+        elif action == "notice":
+            config_obj.set("monitoring.blocking_enabled", False)
             click.echo("Monitoring action set to: notice (show suggestions)")
-        elif action == 'block':
-            config_obj.set('monitoring.blocking_enabled', True)
+        elif action == "block":
+            config_obj.set("monitoring.blocking_enabled", True)
             click.echo("Monitoring action set to: block (prevent command execution)")
-            click.echo("⚠️  Warning: Commands will be blocked when threshold is reached!")
-            click.echo("   Make sure you know your aliases or switch to notice action if needed.")
+            click.echo(
+                "⚠️  Warning: Commands will be blocked when threshold is reached!"
+            )
+            click.echo(
+                "   Make sure you know your aliases or switch to notice action if needed."
+            )
 
     if notice_threshold is not None:
-        config_obj.set('monitoring.notice_threshold', notice_threshold)
+        config_obj.set("monitoring.notice_threshold", notice_threshold)
         click.echo(f"Notice threshold set to {notice_threshold}")
 
     if block_threshold is not None:
-        config_obj.set('monitoring.blocking_threshold', block_threshold)
+        config_obj.set("monitoring.blocking_threshold", block_threshold)
         click.echo(f"Block threshold set to {block_threshold}")
 
+
 @monitor.command()
-@click.option('--shell', type=click.Choice(['bash', 'zsh']), help='Show files for specific shell')
-@click.option('--add', help='Add file to monitoring list (requires --shell)')
-@click.option('--remove', help='Remove file from monitoring list (requires --shell)')
+@click.option(
+    "--shell", type=click.Choice(["bash", "zsh"]), help="Show files for specific shell"
+)
+@click.option("--add", help="Add file to monitoring list (requires --shell)")
+@click.option("--remove", help="Remove file from monitoring list (requires --shell)")
 def files(shell, add, remove):
     """Manage monitored configuration files."""
     learner = AutoLearner()
@@ -309,7 +353,7 @@ def files(shell, add, remove):
             # Automatically learn from the new file
             click.echo("🎓 Learning aliases from new file...")
             results = learner.learn_from_monitored_files(shell)
-            if results['learned'] > 0:
+            if results["learned"] > 0:
                 click.echo(f"   📚 Learned {results['learned']} new aliases")
         else:
             click.echo(f"⚠️  File {add} is already monitored for {shell}")
@@ -361,8 +405,8 @@ def status():
     click.echo(f"  Config dir: {config.config_dir}")
 
     # Show monitoring settings
-    enabled = config.get('monitoring.enabled', True)
-    blocking_enabled = config.get('monitoring.blocking_enabled', False)
+    enabled = config.get("monitoring.enabled", True)
+    blocking_enabled = config.get("monitoring.blocking_enabled", False)
 
     if not enabled:
         action = "none"
@@ -375,8 +419,8 @@ def status():
     click.echo(f"  Action: {action}")
 
     # Show monitoring settings
-    notice_threshold = config.get('monitoring.notice_threshold', 1)
-    blocking_threshold = config.get('monitoring.blocking_threshold', 5)
+    notice_threshold = config.get("monitoring.notice_threshold", 1)
+    blocking_threshold = config.get("monitoring.blocking_threshold", 5)
 
     click.echo(f"  Notice threshold: {notice_threshold}")
     click.echo(f"  Block threshold: {blocking_threshold}")
@@ -393,10 +437,12 @@ def status():
 
     # Show alias stats summary
     from .monitors.command_monitor import CommandMonitor
+
     monitor = CommandMonitor()
     stats = monitor.get_command_stats()
     if stats:
         click.echo(f"  Tracked aliases: {len(stats)}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

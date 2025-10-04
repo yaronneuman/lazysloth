@@ -5,8 +5,9 @@ File change monitoring for automatic alias relearning.
 import time
 from pathlib import Path
 from typing import Dict, Set
-from .config import Config
+
 from .auto_learner import AutoLearner
+from .config import Config
 
 
 class FileWatcher:
@@ -15,7 +16,7 @@ class FileWatcher:
     def __init__(self):
         self.config = Config()
         self.learner = AutoLearner()
-        self._last_check_file = self.config.config_dir / '.last_file_check'
+        self._last_check_file = self.config.config_dir / ".last_file_check"
         self._file_mtimes = {}
 
     def check_and_relearn_if_needed(self) -> bool:
@@ -28,7 +29,7 @@ class FileWatcher:
         """
         try:
             # Get all monitored files
-            monitored_files = self.config.get('monitored_files', {})
+            monitored_files = self.config.get("monitored_files", {})
             all_files = []
             for shell, files in monitored_files.items():
                 all_files.extend(files)
@@ -50,9 +51,9 @@ class FileWatcher:
                 total_changes = 0
                 for shell in shells_to_relearn:
                     results = self.learner.learn_from_monitored_files(shell)
-                    total_changes += (results['learned'] +
-                                    results['updated'] +
-                                    results['removed'])
+                    total_changes += (
+                        results["learned"] + results["updated"] + results["removed"]
+                    )
 
                 # Update last check time
                 self._update_last_check()
@@ -80,8 +81,10 @@ class FileWatcher:
                     current_mtimes[file_path] = mtime
 
                     # Check if file is new or modified
-                    if (file_path not in previous_mtimes or
-                        previous_mtimes[file_path] != mtime):
+                    if (
+                        file_path not in previous_mtimes
+                        or previous_mtimes[file_path] != mtime
+                    ):
                         changed_files.add(file_path)
 
                 except OSError:
@@ -94,11 +97,12 @@ class FileWatcher:
 
     def _load_file_mtimes(self) -> Dict[str, float]:
         """Load file modification times from last check."""
-        mtime_file = self.config.config_dir / '.file_mtimes'
+        mtime_file = self.config.config_dir / ".file_mtimes"
         if mtime_file.exists():
             try:
                 import json
-                with open(mtime_file, 'r') as f:
+
+                with open(mtime_file, "r") as f:
                     return json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
@@ -106,10 +110,11 @@ class FileWatcher:
 
     def _save_file_mtimes(self, mtimes: Dict[str, float]) -> None:
         """Save file modification times for next check."""
-        mtime_file = self.config.config_dir / '.file_mtimes'
+        mtime_file = self.config.config_dir / ".file_mtimes"
         try:
             import json
-            with open(mtime_file, 'w') as f:
+
+            with open(mtime_file, "w") as f:
                 json.dump(mtimes, f)
         except OSError:
             # Silently fail if we can't save
@@ -118,7 +123,7 @@ class FileWatcher:
     def _update_last_check(self) -> None:
         """Update the last check timestamp."""
         try:
-            with open(self._last_check_file, 'w') as f:
+            with open(self._last_check_file, "w") as f:
                 f.write(str(time.time()))
         except OSError:
             # Silently fail if we can't save

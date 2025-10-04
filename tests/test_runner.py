@@ -5,9 +5,9 @@ Test runner script for FastParrot.
 This script provides convenient ways to run tests with different configurations.
 """
 
-import sys
-import subprocess
 import argparse
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -15,12 +15,7 @@ def run_command(cmd, cwd=None):
     """Run a shell command and return the result."""
     try:
         result = subprocess.run(
-            cmd,
-            shell=True,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            check=True
+            cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=True
         )
         return result.returncode == 0, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
@@ -89,7 +84,7 @@ def lint_code():
     commands = [
         "python -m flake8 lazysloth tests --max-line-length=100 --ignore=E501,W503",
         "python -m black --check lazysloth tests",
-        "python -m isort --check-only lazysloth tests"
+        "python -m isort --check-only lazysloth tests",
     ]
 
     all_passed = True
@@ -115,32 +110,24 @@ def main():
     parser.add_argument(
         "command",
         choices=["test", "install-deps", "lint", "all"],
-        help="Command to run"
+        help="Command to run",
     )
 
     parser.add_argument(
         "--type",
         choices=["unit", "integration", "all"],
         default="all",
-        help="Type of tests to run"
+        help="Type of tests to run",
+    )
+
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
+    parser.add_argument(
+        "--coverage", action="store_true", help="Run with coverage reporting"
     )
 
     parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Verbose output"
-    )
-
-    parser.add_argument(
-        "--coverage",
-        action="store_true",
-        help="Run with coverage reporting"
-    )
-
-    parser.add_argument(
-        "-m", "--markers",
-        nargs="*",
-        help="Run tests with specific markers"
+        "-m", "--markers", nargs="*", help="Run tests with specific markers"
     )
 
     args = parser.parse_args()
@@ -154,7 +141,7 @@ def main():
             test_type=args.type if args.type != "all" else None,
             verbose=args.verbose,
             coverage=args.coverage,
-            markers=args.markers
+            markers=args.markers,
         )
     elif args.command == "all":
         print("=== Installing dependencies ===")
@@ -170,7 +157,7 @@ def main():
                 test_type=args.type if args.type != "all" else None,
                 verbose=args.verbose,
                 coverage=True,  # Always use coverage for "all" command
-                markers=args.markers
+                markers=args.markers,
             )
 
     sys.exit(0 if success else 1)

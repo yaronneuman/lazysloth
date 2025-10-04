@@ -1,27 +1,28 @@
 import os
 import shutil
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional
+
 
 class Installer:
     """Handles installation of LazySloth shell integration."""
 
     def __init__(self):
         self.package_dir = Path(__file__).parent.parent
-        self.shells_dir = self.package_dir / 'shells'
+        self.shells_dir = self.package_dir / "shells"
 
     def _clean_lazysloth_data(self):
         """Clean LazySloth learned data files while preserving configuration."""
         from .config import Config
+
         config = Config()
 
         # Files to remove (learned data)
         files_to_remove = [
-            config.aliases_file,          # ~/.config/lazysloth/aliases.yaml
-            config.stats_file,            # ~/.config/lazysloth/stats.yaml
-            config.config_dir / '.file_mtimes',      # file change tracking
-            config.config_dir / '.last_file_check'   # last check timestamp
+            config.aliases_file,  # ~/.config/lazysloth/aliases.yaml
+            config.stats_file,  # ~/.config/lazysloth/stats.yaml
+            config.config_dir / ".file_mtimes",  # file change tracking
+            config.config_dir / ".last_file_check",  # last check timestamp
         ]
 
         for file_path in files_to_remove:
@@ -34,32 +35,21 @@ class Installer:
 
     def detect_shell(self) -> str:
         """Detect the user's current shell."""
-        shell_path = os.environ.get('SHELL', '/bin/bash')
+        shell_path = os.environ.get("SHELL", "/bin/bash")
         shell_name = Path(shell_path).name
 
         # Map shell names to our supported shells
-        shell_mapping = {
-            'bash': 'bash',
-            'zsh': 'zsh'
-        }
+        shell_mapping = {"bash": "bash", "zsh": "zsh"}
 
-        return shell_mapping.get(shell_name, 'bash')
+        return shell_mapping.get(shell_name, "bash")
 
     def get_shell_config_files(self, shell: str) -> List[Path]:
         """Get list of configuration files for a shell."""
         home = Path.home()
 
         shell_configs = {
-            'bash': [
-                home / '.bash_profile',
-                home / '.bash_profile',
-                home / '.profile'
-            ],
-            'zsh': [
-                home / '.zshrc',
-                home / '.zsh_profile',
-                home / '.profile'
-            ],
+            "bash": [home / ".bash_profile", home / ".bash_profile", home / ".profile"],
+            "zsh": [home / ".zshrc", home / ".zsh_profile", home / ".profile"],
         }
 
         return shell_configs.get(shell, [])
@@ -92,12 +82,14 @@ class Installer:
         already_installed = False
 
         if config_file.exists():
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 content = f.read()
                 already_installed = lazysloth_marker in content
 
             if already_installed and not force:
-                raise ValueError("LazySloth is already installed. Use --force to reinstall.")
+                raise ValueError(
+                    "LazySloth is already installed. Use --force to reinstall."
+                )
 
         # Always clean up existing installations first (especially when using --force)
         if already_installed:
@@ -110,27 +102,29 @@ class Installer:
         integration_code = self._generate_integration_code(shell)
 
         # Add integration to config file
-        with open(config_file, 'a') as f:
+        with open(config_file, "a") as f:
             f.write(f"\n\n{lazysloth_marker}\n")
             f.write(integration_code)
             f.write("\n# End LazySloth integration\n")
 
         # Ensure .slothrc exists and is sourced
         from .slothrc import SlothRC
+
         slothrc = SlothRC()
         slothrc.ensure_exists()
 
     def _generate_integration_code(self, shell: str) -> str:
         """Generate shell-specific integration code."""
-        python_path = shutil.which('python3') or shutil.which('python')
+        python_path = shutil.which("python3") or shutil.which("python")
 
         # Get .slothrc source line
         from .slothrc import SlothRC
+
         slothrc = SlothRC()
         slothrc_source = slothrc.get_source_line(shell)
 
-        if shell == 'bash':
-            return f'''
+        if shell == "bash":
+            return f"""
 # Source LazySloth user aliases
 {slothrc_source}
 
@@ -169,10 +163,10 @@ lazysloth_preexec() {{
 
 # Register the function with bash-preexec
 preexec_functions+=(lazysloth_preexec)
-'''
+"""
 
-        elif shell == 'zsh':
-            return f'''
+        elif shell == "zsh":
+            return f"""
 # Source LazySloth user aliases
 {slothrc_source}
 
@@ -215,11 +209,12 @@ zle -N lazysloth_widget
 # Bind to Enter key (^M) and ^J
 bindkey "^M" lazysloth_widget
 bindkey "^J" lazysloth_widget
-'''
-
+"""
 
         else:
-            raise ValueError(f"Unsupported shell: {shell}. Only 'bash' and 'zsh' are supported.")
+            raise ValueError(
+                f"Unsupported shell: {shell}. Only 'bash' and 'zsh' are supported."
+            )
 
     def uninstall(self, shell: str):
         """Remove LazySloth integration from shell configuration."""
@@ -228,22 +223,22 @@ bindkey "^J" lazysloth_widget
         if not config_file or not config_file.exists():
             return
 
-        with open(config_file, 'r') as f:
+        with open(config_file, "r") as f:
             content = f.read()
 
         # Remove all LazySloth integrations (handle multiple sections)
         import re
 
         # Pattern to match LazySloth integration blocks
-        pattern = r'# LazySloth integration.*?# End LazySloth integration\s*'
+        pattern = r"# LazySloth integration.*?# End LazySloth integration\s*"
 
         # Remove all LazySloth blocks (with newlines)
-        cleaned_content = re.sub(pattern, '', content, flags=re.DOTALL)
+        cleaned_content = re.sub(pattern, "", content, flags=re.DOTALL)
 
         # Clean up excessive newlines (more than 2 consecutive newlines)
-        cleaned_content = re.sub(r'\n{3,}', '\n\n', cleaned_content)
+        cleaned_content = re.sub(r"\n{3,}", "\n\n", cleaned_content)
 
-        with open(config_file, 'w') as f:
+        with open(config_file, "w") as f:
             f.write(cleaned_content)
 
         # Clean up LazySloth learned data

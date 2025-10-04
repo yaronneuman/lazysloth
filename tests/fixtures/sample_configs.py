@@ -238,4 +238,3 @@ SAMPLE_STATS = {
         'alias_command': 'docker ps'
     }
 }
-"""

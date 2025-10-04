@@ -3,11 +3,12 @@ Test configuration and shared fixtures for FastParrot tests.
 """
 
 import os
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
-from typing import Dict, Any
-from unittest.mock import patch, MagicMock
+from typing import Any, Dict
+from unittest.mock import MagicMock, patch
+
 import pytest
 import yaml
 
@@ -36,13 +37,13 @@ def mock_home_dir(tmp_path):
 @pytest.fixture
 def isolated_config(isolated_config_dir, mock_home_dir):
     """Create a Config instance that uses isolated directories."""
-    with patch.object(Path, 'home', return_value=mock_home_dir):
-        with patch.object(Config, '__init__', lambda self: None):
+    with patch.object(Path, "home", return_value=mock_home_dir):
+        with patch.object(Config, "__init__", lambda self: None):
             config = Config()
             config.config_dir = isolated_config_dir
-            config.config_file = isolated_config_dir / 'config.yaml'
-            config.aliases_file = isolated_config_dir / 'aliases.yaml'
-            config.stats_file = isolated_config_dir / 'stats.yaml'
+            config.config_file = isolated_config_dir / "config.yaml"
+            config.aliases_file = isolated_config_dir / "aliases.yaml"
+            config.stats_file = isolated_config_dir / "stats.yaml"
             config._config = config._default_config()
             return config
 
@@ -51,23 +52,23 @@ def isolated_config(isolated_config_dir, mock_home_dir):
 def sample_aliases():
     """Provide sample aliases for testing."""
     return {
-        'gs': {
-            'command': 'git status',
-            'shell': 'zsh',
-            'source_file': '/home/user/.zshrc',
-            'type': 'alias'
+        "gs": {
+            "command": "git status",
+            "shell": "zsh",
+            "source_file": "/home/user/.zshrc",
+            "type": "alias",
         },
-        'll': {
-            'command': 'ls -la',
-            'shell': 'bash',
-            'source_file': '/home/user/.bash_profile',
-            'type': 'alias'
+        "ll": {
+            "command": "ls -la",
+            "shell": "bash",
+            "source_file": "/home/user/.bash_profile",
+            "type": "alias",
         },
-        'dps': {
-            'command': 'docker ps',
-            'shell': 'zsh',
-            'source_file': '/home/user/.zshrc',
-            'type': 'alias'
+        "dps": {
+            "command": "docker ps",
+            "shell": "zsh",
+            "source_file": "/home/user/.zshrc",
+            "type": "alias",
         },
     }
 
@@ -76,7 +77,7 @@ def sample_aliases():
 def sample_shell_configs():
     """Provide sample shell configuration file contents."""
     return {
-        'bash_profile': '''
+        "bash_profile": """
 # Basic bash configuration
 export PATH=$HOME/bin:$PATH
 
@@ -90,8 +91,8 @@ alias ..='cd ..'
 function mkcd() {
     mkdir -p "$1" && cd "$1"
 }
-''',
-        'zshrc': '''
+""",
+        "zshrc": """
 # Zsh configuration
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -105,7 +106,7 @@ alias ll="ls -la"
 # Custom aliases
 alias tmux='tmux -2'
 alias vim='nvim'
-''',
+""",
     }
 
 
@@ -113,33 +114,32 @@ alias vim='nvim'
 def populated_shell_configs(mock_home_dir, sample_shell_configs):
     """Create shell config files with sample content."""
     # Create bash config
-    bash_profile = mock_home_dir / '.bash_profile'
-    bash_profile.write_text(sample_shell_configs['bash_profile'])
+    bash_profile = mock_home_dir / ".bash_profile"
+    bash_profile.write_text(sample_shell_configs["bash_profile"])
 
     # Create zsh config
-    zshrc = mock_home_dir / '.zshrc'
-    zshrc.write_text(sample_shell_configs['zshrc'])
-
+    zshrc = mock_home_dir / ".zshrc"
+    zshrc.write_text(sample_shell_configs["zshrc"])
 
     return {
-        'bash_profile': bash_profile,
-        'zshrc': zshrc,
+        "bash_profile": bash_profile,
+        "zshrc": zshrc,
     }
 
 
 @pytest.fixture
 def mock_subprocess():
     """Mock subprocess calls to avoid actual shell commands."""
-    with patch('subprocess.run') as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         yield mock_run
 
 
 @pytest.fixture
 def mock_shutil_which():
     """Mock shutil.which to return predictable python path."""
-    with patch('shutil.which') as mock_which:
-        mock_which.return_value = '/usr/bin/python3'
+    with patch("shutil.which") as mock_which:
+        mock_which.return_value = "/usr/bin/python3"
         yield mock_which
 
 
@@ -147,18 +147,18 @@ def mock_shutil_which():
 def command_stats_sample():
     """Provide sample command statistics data."""
     return {
-        'gs': {
-            'count': 5,
-            'first_seen': '2024-01-01T10:00:00',
-            'last_seen': '2024-01-01T15:00:00',
-            'alias_command': 'git status'
+        "gs": {
+            "count": 5,
+            "first_seen": "2024-01-01T10:00:00",
+            "last_seen": "2024-01-01T15:00:00",
+            "alias_command": "git status",
         },
-        'll': {
-            'count': 2,
-            'first_seen': '2024-01-01T11:00:00',
-            'last_seen': '2024-01-01T14:00:00',
-            'alias_command': 'ls -la'
-        }
+        "ll": {
+            "count": 2,
+            "first_seen": "2024-01-01T11:00:00",
+            "last_seen": "2024-01-01T14:00:00",
+            "alias_command": "ls -la",
+        },
     }
 
 
@@ -166,8 +166,9 @@ def command_stats_sample():
 def mock_datetime():
     """Mock datetime to ensure consistent test results."""
     from datetime import datetime
+
     mock_dt = datetime(2024, 1, 1, 12, 0, 0)
-    with patch('lazysloth.monitors.command_monitor.datetime') as mock:
+    with patch("lazysloth.monitors.command_monitor.datetime") as mock:
         mock.now.return_value = mock_dt
         yield mock
 
@@ -188,16 +189,15 @@ class TestEnvironment:
 
     def create_shell_config(self, shell: str, content: str):
         """Create a shell configuration file with the given content."""
-        if shell == 'bash':
-            config_file = self.home_dir / '.bash_profile'
-        elif shell == 'zsh':
-            config_file = self.home_dir / '.zshrc'
+        if shell == "bash":
+            config_file = self.home_dir / ".bash_profile"
+        elif shell == "zsh":
+            config_file = self.home_dir / ".zshrc"
         else:
             raise ValueError(f"Unknown shell: {shell}")
 
         config_file.write_text(content)
         return config_file
-
 
 
 @pytest.fixture

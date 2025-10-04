@@ -4,10 +4,12 @@ Command hook module - called by shell integration to monitor commands.
 This is invoked before each command execution.
 """
 
-import sys
 import os
-from .command_monitor import CommandMonitor, MonitorAction
+import sys
+
 from ..core.file_watcher import FileWatcher
+from .command_monitor import CommandMonitor, MonitorAction
+
 
 def main():
     """Main entry point for the command hook."""
@@ -15,10 +17,10 @@ def main():
         return
 
     # Get the command from arguments
-    command = ' '.join(sys.argv[1:]).strip()
+    command = " ".join(sys.argv[1:]).strip()
 
     # Skip empty commands or LazySloth commands
-    if not command or command.startswith('lazysloth') or 'lazysloth' in command:
+    if not command or command.startswith("lazysloth") or "lazysloth" in command:
         sys.exit(0)  # Allow command to proceed
 
     try:
@@ -45,5 +47,5 @@ def main():
     sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

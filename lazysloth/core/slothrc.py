@@ -11,7 +11,7 @@ class SlothRC:
     """Manages the ~/.slothrc file for user-defined aliases."""
 
     def __init__(self):
-        self.rc_file = Path.home() / '.slothrc'
+        self.rc_file = Path.home() / ".slothrc"
 
     def add_alias(self, alias_name: str, command: str):
         """Add an alias to .slothrc file."""
@@ -47,28 +47,32 @@ class SlothRC:
             return aliases
 
         try:
-            with open(self.rc_file, 'r') as f:
+            with open(self.rc_file, "r") as f:
                 for line in f:
                     line = line.strip()
 
                     # Skip empty lines and comments
-                    if not line or line.startswith('#'):
+                    if not line or line.startswith("#"):
                         continue
 
                     # Parse alias lines: alias name="command"
-                    if line.startswith('alias '):
+                    if line.startswith("alias "):
                         alias_part = line[6:]  # Remove 'alias '
 
                         # Find the = sign
-                        if '=' in alias_part:
-                            alias_name, alias_command = alias_part.split('=', 1)
+                        if "=" in alias_part:
+                            alias_name, alias_command = alias_part.split("=", 1)
                             alias_name = alias_name.strip()
                             alias_command = alias_command.strip()
 
                             # Remove quotes if present
-                            if alias_command.startswith('"') and alias_command.endswith('"'):
+                            if alias_command.startswith('"') and alias_command.endswith(
+                                '"'
+                            ):
                                 alias_command = alias_command[1:-1]
-                            elif alias_command.startswith("'") and alias_command.endswith("'"):
+                            elif alias_command.startswith(
+                                "'"
+                            ) and alias_command.endswith("'"):
                                 alias_command = alias_command[1:-1]
 
                             aliases[alias_name] = alias_command
@@ -86,7 +90,7 @@ class SlothRC:
             "# LazySloth user-defined aliases",
             "# This file is automatically managed by LazySloth",
             "# You can edit it manually, but changes may be overwritten",
-            ""
+            "",
         ]
 
         # Add aliases in sorted order for consistency
@@ -99,8 +103,8 @@ class SlothRC:
         content.append("")  # Trailing newline
 
         try:
-            with open(self.rc_file, 'w') as f:
-                f.write('\n'.join(content))
+            with open(self.rc_file, "w") as f:
+                f.write("\n".join(content))
         except IOError as e:
             raise RuntimeError(f"Failed to write to {self.rc_file}: {e}")
 
