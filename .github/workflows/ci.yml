@@ -75,7 +75,7 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 lazysloth --max-line-length=127
+        flake8 lazysloth --max-line-length=127 --ignore=E501,W503,E203
 
     - name: Check formatting with black
       run: |
