@@ -11,9 +11,6 @@ license = {text = "AGPL-3.0-or-later"}
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["cli", "shell", "bash", "zsh", "aliases", "productivity", "terminal"]
-homepage = "https://github.com/yaronneuman/lazysloth"
-repository = "https://github.com/yaronneuman/lazysloth"
-documentation = "https://github.com/yaronneuman/lazysloth#readme"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -39,6 +36,11 @@ dependencies = [
     "psutil>=5.8.0",
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/yaronneuman/lazysloth"
+Repository = "https://github.com/yaronneuman/lazysloth"
+Documentation = "https://github.com/yaronneuman/lazysloth#readme"
 
 [project.optional-dependencies]
 test = [
